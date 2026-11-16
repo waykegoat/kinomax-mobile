@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+:root {
+  --color-brand-pink: #E52E84;
+  --color-brand-pink-hover: #F03A92;
+  --color-brand-pink-dark: #B51D64;
+  --color-bg-dark: #121214;
+  --color-card-dark: #1C1C1F;
+  --color-surface-dark: #242428;
+  --color-border-dark: #323238;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #09090b;
+  color: #f4f4f5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+/* Mobile Frame Wrapper */
+.mobile-device-container {
+  width: 100%;
+  max-width: 420px;
+  height: 100dvh;
+  max-height: 880px;
+  background-color: #121214;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 10px #222226;
+  border-radius: 44px;
+}
+
+@media (max-width: 500px) {
+  .mobile-device-container {
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Dynamic Island / Notch on desktop preview */
+.device-notch {
+  width: 120px;
+  height: 28px;
+  background-color: #000000;
+  border-radius: 20px;
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  pointer-events: none;
+}
+
+@media (max-width: 500px) {
+  .device-notch {
+    display: none;
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
