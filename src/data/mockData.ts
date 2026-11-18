@@ -1,3 +1,8 @@
+import bitvaPoster from '../assets/bitva_motorov_poster.jpg';
+import sumerkiPoster from '../assets/sumerki_poster.jpg';
+import kolobokPoster from '../assets/kolobok_poster.jpg';
+import dunePoster from '../assets/dune2_poster.jpg';
+
 export interface Movie {
   id: string;
   title: string;
@@ -54,7 +59,7 @@ export const MOVIES: Movie[] = [
     dates: ['22 окт', '23 окт', '24 окт', '25 окт'],
     bannerGradient: 'from-amber-700 via-orange-950 to-neutral-950',
     posterBg: '#8A3B14',
-    posterImage: './assets/bitva_motorov_poster.jpg',
+    posterImage: bitvaPoster,
     showtimes: [
       { time: '09:40', format: '2D', price: 350, hall: 'Зал 1' },
       { time: '12:40', format: 'IMAX', price: 700, hall: 'Зал 1' },
@@ -74,7 +79,7 @@ export const MOVIES: Movie[] = [
     dates: ['16 дек', '17 дек', '18 дек'],
     bannerGradient: 'from-sky-900 via-slate-900 to-neutral-950',
     posterBg: '#1e293b',
-    posterImage: './assets/sumerki_poster.jpg',
+    posterImage: sumerkiPoster,
     showtimes: [
       { time: '19:00', format: '2D', price: 350, hall: 'Зал 2' },
       { time: '21:30', format: '2D', price: 400, hall: 'Зал 2' },
@@ -92,7 +97,7 @@ export const MOVIES: Movie[] = [
     dates: ['20 дек', '21 дек', '22 дек'],
     bannerGradient: 'from-amber-500 via-yellow-800 to-neutral-950',
     posterBg: '#d97706',
-    posterImage: './assets/kolobok_poster.jpg',
+    posterImage: kolobokPoster,
     showtimes: [
       { time: '11:00', format: '3D', price: 1500, hall: 'Зал 1' },
       { time: '14:30', format: '3D', price: 1500, hall: 'Зал 1' },
@@ -110,7 +115,7 @@ export const MOVIES: Movie[] = [
     dates: ['21 дек', '22 дек', '23 дек'],
     bannerGradient: 'from-orange-800 via-red-950 to-neutral-950',
     posterBg: '#9a3412',
-    posterImage: './assets/dune2_poster.jpg',
+    posterImage: dunePoster,
     showtimes: [
       { time: '16:00', format: 'IMAX', price: 600, hall: 'Зал 3 IMAX' },
       { time: '19:00', format: 'IMAX', price: 700, hall: 'Зал 3 IMAX' },
