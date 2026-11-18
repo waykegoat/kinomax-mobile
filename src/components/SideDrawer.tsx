@@ -26,45 +26,45 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
+    <div className="absolute inset-0 z-50 flex overflow-hidden">
+      {/* Dark backdrop strictly confined inside phone screen */}
       <div 
-        className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity animate-fade-in"
         onClick={onClose}
       />
 
-      {/* Drawer content */}
-      <div className="relative w-[300px] max-w-[85vw] bg-[#161619] h-full flex flex-col p-6 shadow-2xl z-10 animate-fade-in border-r border-neutral-800">
+      {/* Drawer content sliding inside phone */}
+      <div className="relative w-[82%] max-w-[320px] bg-[#161619] h-full flex flex-col p-5 shadow-2xl z-10 border-r border-neutral-800 animate-slide-right">
         {/* Top Header */}
-        <div className="flex items-center justify-between pb-6 border-b border-neutral-800/80">
+        <div className="flex items-center justify-between pb-4 border-b border-neutral-800/80">
           <div>
-            <span className="text-xl font-black tracking-wider text-white">КИНОМАКС</span>
-            <div className="flex items-center gap-1.5 text-xs text-neutral-400 mt-1">
+            <span className="text-lg font-black tracking-wider text-white">КИНОМАКС</span>
+            <div className="flex items-center gap-1 text-xs text-neutral-400 mt-0.5">
               <MapPin size={12} className="text-[#E52E84]" />
               <span>Владимир</span>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-[#26262a] text-neutral-300 hover:text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-[#26262a] text-neutral-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
 
         {/* User Quick Shortcuts */}
-        <div className="py-4 border-b border-neutral-800/80 space-y-2">
+        <div className="py-3 border-b border-neutral-800/80 space-y-1.5">
           <button
             onClick={() => {
               onNavigate('profile');
               onClose();
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#26262a] text-left transition-colors text-neutral-200"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#26262a] text-left transition-colors text-neutral-200 cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-[#E52E84]/20 text-[#E52E84] flex items-center justify-center">
-              <User size={16} />
+            <div className="w-7 h-7 rounded-full bg-[#E52E84]/20 text-[#E52E84] flex items-center justify-center shrink-0">
+              <User size={15} />
             </div>
-            <span className="text-sm font-medium">Личный кабинет</span>
+            <span className="text-xs font-semibold">Личный кабинет</span>
           </button>
 
           <button
@@ -72,18 +72,18 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
               onNavigate('tickets');
               onClose();
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#26262a] text-left transition-colors text-neutral-200"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-[#26262a] text-left transition-colors text-neutral-200 cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-              <TicketIcon size={16} />
+            <div className="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+              <TicketIcon size={15} />
             </div>
-            <span className="text-sm font-medium">Мои билеты</span>
+            <span className="text-xs font-semibold">Мои билеты</span>
           </button>
         </div>
 
         {/* Category List */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-1">
-          <div className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-3 mb-2">
+        <div className="flex-1 overflow-y-auto py-3 space-y-0.5">
+          <div className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-3 mb-1.5">
             Меню
           </div>
           {menuItems.map((item, idx) => {
@@ -95,19 +95,19 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
                   onNavigate(item.tab);
                   onClose();
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-neutral-300 hover:text-white hover:bg-[#222226] text-left text-sm transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-neutral-300 hover:text-white hover:bg-[#222226] text-left text-xs transition-colors cursor-pointer"
               >
-                <Icon size={16} className="text-neutral-400" />
-                <span>{item.label}</span>
+                <Icon size={15} className="text-neutral-400 shrink-0" />
+                <span className="font-medium">{item.label}</span>
               </button>
             );
           })}
         </div>
 
         {/* Footer info */}
-        <div className="pt-4 border-t border-neutral-800 text-[11px] text-neutral-400">
+        <div className="pt-3 border-t border-neutral-800 text-[10px] text-neutral-400">
           Киномакс-Буревестник Владимир
-          <div className="text-neutral-400 mt-0.5">пр. Ленина, д. 29</div>
+          <div className="text-neutral-500 mt-0.5">пр. Ленина, д. 29</div>
         </div>
       </div>
     </div>

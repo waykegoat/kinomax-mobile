@@ -5,6 +5,7 @@ import { MobileStatusBar } from './components/MobileStatusBar';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/HomeScreen';
 import { CatalogScreen } from './components/CatalogScreen';
+import { SearchScreen } from './components/SearchScreen';
 import { TicketsScreen } from './components/TicketsScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { SideDrawer } from './components/SideDrawer';
@@ -16,7 +17,7 @@ import { Smartphone, Monitor } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Navigation State
-  const [currentTab, setCurrentTab] = useState<'home' | 'catalog' | 'tickets' | 'profile'>('home');
+  const [currentTab, setCurrentTab] = useState<'home' | 'search' | 'catalog' | 'tickets' | 'profile'>('home');
   const [overlayScreen, setOverlayScreen] = useState<
     null | 'movie_detail' | 'seat_selection' | 'payment' | 'auth'
   >(null);
@@ -140,6 +141,10 @@ export const App: React.FC = () => {
               onSelectMovie={handleSelectMovie}
               onQuickShowtime={handleQuickShowtime}
             />
+          )}
+
+          {currentTab === 'search' && (
+            <SearchScreen onSelectMovie={handleSelectMovie} />
           )}
 
           {currentTab === 'catalog' && (

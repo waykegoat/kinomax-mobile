@@ -10,21 +10,21 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ ticket, onClose }) => 
   if (!ticket) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in overflow-hidden">
       <div 
-        className="w-full max-w-[340px] bg-white text-neutral-900 rounded-3xl p-6 flex flex-col items-center shadow-2xl animate-slide-up"
+        className="w-full max-w-[310px] bg-white text-neutral-900 rounded-3xl p-5 flex flex-col items-center shadow-2xl animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-xl font-bold tracking-tight text-neutral-950 mb-1">
+        <h3 className="text-lg font-bold tracking-tight text-neutral-950 mb-1">
           QR-код билета
         </h3>
-        <p className="text-xs text-neutral-500 text-center mb-5">
+        <p className="text-[11px] text-neutral-500 text-center mb-4">
           Покажите код контролеру при входе в зал
         </p>
 
         {/* Crisp QR Code Visual */}
-        <div className="p-3 bg-white border border-neutral-200 rounded-2xl shadow-inner mb-4">
-          <svg viewBox="0 0 160 160" className="w-48 h-48">
+        <div className="p-3 bg-white border border-neutral-200 rounded-2xl shadow-inner mb-3">
+          <svg viewBox="0 0 160 160" className="w-40 h-40">
             <rect width="160" height="160" fill="#FFFFFF" />
             {/* Corner Markers */}
             {/* Top-Left */}
@@ -77,12 +77,12 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ ticket, onClose }) => 
         </div>
 
         {/* Ticket Info */}
-        <div className="w-full bg-neutral-100 rounded-2xl p-3 mb-5 text-center">
-          <div className="text-sm font-bold text-neutral-900">{ticket.movieTitle}</div>
-          <div className="text-xs text-neutral-600 mt-1">
+        <div className="w-full bg-neutral-100 rounded-2xl p-3 mb-4 text-center">
+          <div className="text-xs font-bold text-neutral-900">{ticket.movieTitle}</div>
+          <div className="text-[11px] text-neutral-600 mt-0.5">
             {ticket.date} • {ticket.time}
           </div>
-          <div className="text-xs font-semibold text-pink-600 mt-0.5">
+          <div className="text-[11px] font-semibold text-pink-600 mt-0.5">
             {ticket.hall} • {ticket.seats}
           </div>
         </div>
@@ -90,7 +90,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ ticket, onClose }) => 
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold rounded-2xl text-sm transition-colors cursor-pointer active:scale-98"
+          className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold rounded-2xl text-xs transition-colors cursor-pointer active:scale-98"
         >
           Закрыть
         </button>

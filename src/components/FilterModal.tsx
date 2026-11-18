@@ -37,25 +37,25 @@ export const FilterModal: React.FC<FilterModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fade-in">
+    <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end justify-center animate-fade-in overflow-hidden">
       <div 
-        className="w-full sm:max-w-[400px] bg-[#1a1a1e] border-t sm:border border-neutral-800 rounded-t-3xl sm:rounded-3xl p-5 flex flex-col shadow-2xl animate-slide-up max-h-[90vh] overflow-y-auto"
+        className="w-full bg-[#1a1a1e] border-t border-neutral-800 rounded-t-3xl p-5 flex flex-col shadow-2xl animate-slide-up max-h-[88%] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-neutral-800">
+        <div className="flex items-center justify-between pb-3 border-b border-neutral-800 shrink-0">
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
-              className="p-1 -ml-1 text-neutral-400 hover:text-white"
+              className="p-1 -ml-1 text-neutral-400 hover:text-white cursor-pointer"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
-            <h3 className="text-lg font-bold text-white">Фильтры</h3>
+            <h3 className="text-base font-bold text-white">Фильтры</h3>
           </div>
           <button
             onClick={handleReset}
-            className="text-xs text-neutral-400 hover:text-white transition-colors"
+            className="text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
           >
             Сбросить
           </button>
@@ -63,17 +63,17 @@ export const FilterModal: React.FC<FilterModalProps> = ({
 
         {/* Genres */}
         <div className="mt-4">
-          <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2.5 block">
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2 block">
             Жанр
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {genres.map((g) => {
               const active = filters.genre === g;
               return (
                 <button
                   key={g}
                   onClick={() => setFilters({ ...filters, genre: g })}
-                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                     active
                       ? 'bg-[#E52E84] text-white shadow-md shadow-pink-900/30 font-semibold'
                       : 'bg-[#26262b] text-neutral-300 hover:bg-[#323238]'
@@ -87,18 +87,18 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         </div>
 
         {/* Dates */}
-        <div className="mt-5">
-          <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2.5 block">
+        <div className="mt-4">
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2 block">
             Дата
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {dates.map((d) => {
               const active = filters.date === d;
               return (
                 <button
                   key={d}
                   onClick={() => setFilters({ ...filters, date: d })}
-                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                     active
                       ? 'bg-[#E52E84] text-white shadow-md shadow-pink-900/30 font-semibold'
                       : 'bg-[#26262b] text-neutral-300 hover:bg-[#323238]'
@@ -112,18 +112,18 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         </div>
 
         {/* Prices */}
-        <div className="mt-5">
-          <label className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2.5 block">
+        <div className="mt-4">
+          <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2 block">
             Цена
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {prices.map((p) => {
               const active = filters.price === p;
               return (
                 <button
                   key={p}
                   onClick={() => setFilters({ ...filters, price: p })}
-                  className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
                     active
                       ? 'bg-[#E52E84] text-white shadow-md shadow-pink-900/30 font-semibold'
                       : 'bg-[#26262b] text-neutral-300 hover:bg-[#323238]'
@@ -137,13 +137,13 @@ export const FilterModal: React.FC<FilterModalProps> = ({
         </div>
 
         {/* Apply CTA */}
-        <div className="mt-7 pt-2">
+        <div className="mt-6 pt-2 shrink-0">
           <button
             onClick={() => {
               onApply(filters);
               onClose();
             }}
-            className="w-full py-3.5 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-pink-900/40 cursor-pointer"
+            className="w-full py-3.5 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-pink-900/40 cursor-pointer"
           >
             Применить фильтры
           </button>

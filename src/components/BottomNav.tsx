@@ -14,7 +14,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 }) => {
   const tabs = [
     { id: 'home', label: 'Расписание', icon: Home },
-    { id: 'catalog', label: 'Афиша', icon: Search },
+    { id: 'search', label: 'Поиск', icon: Search },
     { id: 'tickets', label: 'Билеты', icon: Ticket, badge: ticketCount },
     { id: 'profile', label: 'Профиль', icon: User },
   ];
