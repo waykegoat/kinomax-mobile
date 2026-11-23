@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, Play, X, Heart, Share2 } from 'lucide-react';
 import type { Movie } from '../data/mockData';
 import { MoviePoster } from './MoviePoster';
 
@@ -14,32 +14,33 @@ export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
   onBack,
   onSelectSeats,
 }) => {
-  const [selectedDate, setSelectedDate] = useState(movie.dates[0] || '22 окт');
-  const [selectedShowtimeIndex, setSelectedShowtimeIndex] = useState(1); // Default 12:40 matching Figma
+  const [selectedDate, setSelectedDate] = useState(movie.dates[0] || 'Сегодня');
+  const [selectedShowtimeIndex, setSelectedShowtimeIndex] = useState(1); // default to second showtime (12:40)
+  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
   const selectedShowtime = movie.showtimes[selectedShowtimeIndex] || movie.showtimes[0];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#121214] text-white overflow-hidden animate-fade-in relative">
-      {/* Top action bar */}
-      <div className="p-4 flex items-center justify-between shrink-0 z-20 border-b border-neutral-800/60">
+    <div className="flex-1 flex flex-col bg-[#FAF9F5] text-[#1A1A1A] overflow-hidden animate-fade-in relative">
+      {/* Top Action Bar matching Figma Screen 13 */}
+      <div className="p-4 flex items-center justify-between shrink-0 z-20 border-b border-[#EAE7DF] bg-[#FAF9F5]">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] transition-colors"
+          className="flex items-center gap-1.5 text-xs font-bold text-[#005C53] hover:text-[#046C62] transition-colors cursor-pointer"
         >
           <ArrowLeft size={16} />
           <span>Назад</span>
         </button>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setIsLiked(!isLiked)}
-            className={`w-8 h-8 rounded-full bg-[#222226] flex items-center justify-center transition-colors ${
-              isLiked ? 'text-[#E52E84]' : 'text-neutral-400 hover:text-white'
+            className={`w-8 h-8 rounded-full bg-white border border-[#EAE7DF] flex items-center justify-center transition-colors cursor-pointer ${
+              isLiked ? 'text-[#005C53]' : 'text-[#7A7A7A] hover:text-[#1A1A1A]'
             }`}
           >
-            <Heart size={16} fill={isLiked ? '#E52E84' : 'none'} />
+            <Heart size={16} fill={isLiked ? '#005C53' : 'none'} />
           </button>
           <button
             onClick={() => {
@@ -49,18 +50,18 @@ export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
                 alert('Ссылка на фильм скопирована');
               }
             }}
-            className="w-8 h-8 rounded-full bg-[#222226] text-neutral-400 hover:text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-white border border-[#EAE7DF] text-[#7A7A7A] hover:text-[#1A1A1A] flex items-center justify-center transition-colors cursor-pointer"
           >
-            <Share2 size={16} />
+            <Share2 size={15} />
           </button>
         </div>
       </div>
 
-      {/* Scrollable details content */}
-      <div className="flex-1 overflow-y-auto pb-6">
+      {/* Scrollable details content matching Figma Screen 13 */}
+      <div className="flex-1 overflow-y-auto pb-24">
         {/* Hero Poster Banner */}
-        <div className="p-5 flex gap-4">
-          <div className="w-28 h-40 shrink-0 shadow-xl rounded-2xl overflow-hidden border border-neutral-700/40">
+        <div className="p-5 flex gap-4 bg-white border-b border-[#EAE7DF]">
+          <div className="w-28 h-40 shrink-0 shadow-md rounded-2xl overflow-hidden border border-[#EAE7DF]">
             <MoviePoster
               movieId={movie.id}
               posterImage={movie.posterImage}
@@ -70,90 +71,102 @@ export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
           </div>
 
           <div className="flex-1 flex flex-col justify-center">
-            <h1 className="text-xl font-black text-white leading-tight mb-2 tracking-wide">
+            <h1 className="text-xl font-black text-[#1A1A1A] leading-tight mb-1.5 tracking-tight">
               {movie.title}
             </h1>
 
             {/* Badges */}
-            <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
-              <span className="px-2 py-0.5 bg-[#26262A] text-neutral-300 text-[10px] font-bold rounded-md border border-neutral-700">
+            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+              <span className="px-2 py-0.5 bg-[#FAF9F5] text-[#1A1A1A] text-[10px] font-bold rounded-md border border-[#EAE7DF]">
                 {movie.age}
               </span>
-              <span className="px-2 py-0.5 bg-[#26262A] text-neutral-300 text-[10px] font-medium rounded-md border border-neutral-700">
+              <span className="px-2 py-0.5 bg-[#FAF9F5] text-[#7A7A7A] text-[10px] font-medium rounded-md border border-[#EAE7DF]">
                 {movie.duration}
               </span>
             </div>
 
-            <div className="text-xs text-neutral-400 font-medium leading-snug">
+            <div className="text-xs text-[#7A7A7A] font-medium leading-snug">
               {movie.genre}
             </div>
 
-            <div className="mt-2 text-xs font-bold text-[#E52E84]">
+            <div className="mt-2 text-sm font-bold text-[#005C53]">
               от {movie.priceFrom} ₽
             </div>
           </div>
         </div>
 
-        {/* Synopsis */}
-        <div className="px-5 mb-6">
-          <p className="text-xs text-neutral-300 leading-relaxed bg-[#19191C] p-3.5 rounded-2xl border border-neutral-800/80">
+        {/* Synopsis matching Screen 13 */}
+        <div className="p-5 space-y-3">
+          <div className="text-xs font-bold text-[#7A7A7A] uppercase tracking-wider">
+            О фильме
+          </div>
+          <p className="text-xs text-[#4A4A4A] leading-relaxed bg-white p-4 rounded-2xl border border-[#EAE7DF] shadow-2xs">
             {movie.description}
           </p>
+
+          {/* Button: Смотреть трейлер matching Figma Screen 13 */}
+          <button
+            onClick={() => setIsTrailerOpen(true)}
+            className="w-full py-3 bg-white border border-[#EAE7DF] hover:border-[#005C53] text-[#1A1A1A] font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-2xs cursor-pointer group"
+          >
+            <div className="w-5 h-5 rounded-full bg-[#005C53] text-white flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Play size={10} fill="currentColor" className="ml-0.5" />
+            </div>
+            <span>Смотреть трейлер</span>
+          </button>
         </div>
 
         {/* Date Selector */}
-        <div className="px-5 mb-6">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
+        <div className="px-5 mb-4">
+          <div className="text-xs font-bold text-[#7A7A7A] uppercase tracking-wider mb-2.5">
             Выберите дату
-          </h3>
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {movie.dates.map((d) => {
-              const active = selectedDate === d;
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {movie.dates.map((date) => {
+              const isSelected = selectedDate === date;
               return (
                 <button
-                  key={d}
-                  onClick={() => setSelectedDate(d)}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-medium shrink-0 transition-all ${
-                    active
-                      ? 'bg-[#281522] border border-[#E52E84] text-white font-bold shadow-md'
-                      : 'bg-[#1E1E22] border border-neutral-800 text-neutral-400 hover:text-white'
+                  key={date}
+                  onClick={() => setSelectedDate(date)}
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#005C53] text-white shadow-sm'
+                      : 'bg-white border border-[#EAE7DF] text-[#7A7A7A] hover:text-[#1A1A1A]'
                   }`}
                 >
-                  {d}
+                  {date}
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Showtime Selector matching Figma Screen 6 */}
+        {/* Showtimes Selector matching Figma Screen 13 */}
         <div className="px-5">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3">
-            Выберите время
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="text-xs font-bold text-[#7A7A7A] uppercase tracking-wider mb-2.5">
+            Сеансы на {selectedDate}
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
             {movie.showtimes.map((st, idx) => {
-              const active = selectedShowtimeIndex === idx;
+              const isSelected = selectedShowtimeIndex === idx;
               return (
                 <button
                   key={idx}
                   onClick={() => setSelectedShowtimeIndex(idx)}
-                  className={`p-3.5 rounded-2xl text-left transition-all ${
-                    active
-                      ? 'bg-[#221822] border-2 border-[#E52E84] shadow-md shadow-pink-950/40'
-                      : 'bg-[#1C1C20] border border-neutral-800 hover:border-neutral-700'
+                  className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#EBF3F2] border-[#005C53] shadow-xs'
+                      : 'bg-white border-[#EAE7DF] hover:border-[#A09D94]'
                   }`}
                 >
-                  <div className="text-[11px] text-neutral-400 mb-0.5">
-                    от {st.price} ₽
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-black text-[#1A1A1A]">{st.time}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF9F5] border border-[#EAE7DF] font-bold text-[#005C53]">
+                      {st.format}
+                    </span>
                   </div>
-                  <div className="text-xl font-black text-white tracking-tight">
-                    {st.time}
-                  </div>
-                  <div className="flex items-center justify-between mt-1 text-[11px]">
-                    <span className="text-[#E52E84] font-semibold">{st.format}</span>
-                    <span className="text-neutral-500">{st.hall}</span>
-                  </div>
+                  <div className="text-[11px] text-[#7A7A7A]">{st.hall}</div>
+                  <div className="text-xs font-bold text-[#005C53] mt-1.5">{st.price} ₽</div>
                 </button>
               );
             })}
@@ -161,15 +174,65 @@ export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
         </div>
       </div>
 
-      {/* Sticky Bottom CTA matching Figma: "Выбрать места" */}
-      <div className="p-4 bg-[#18181B] border-t border-neutral-800 shrink-0">
+      {/* Sticky Bottom CTA Bar */}
+      <div className="p-4 bg-white border-t border-[#EAE7DF] flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div>
+          <div className="text-[11px] text-[#7A7A7A]">
+            {selectedDate}, {selectedShowtime.time} • {selectedShowtime.hall}
+          </div>
+          <div className="text-base font-black text-[#005C53]">
+            {selectedShowtime.price} ₽ / билет
+          </div>
+        </div>
+
         <button
           onClick={() => onSelectSeats(selectedDate, selectedShowtime)}
-          className="w-full py-4 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-pink-900/40 cursor-pointer"
+          className="px-7 py-3 bg-[#005C53] hover:bg-[#046C62] active:scale-98 text-white font-bold rounded-2xl text-xs transition-all shadow-sm cursor-pointer"
         >
-          Выбрать места
+          Выбрать сеанс
         </button>
       </div>
+
+      {/* Screen 14 · Трейлер Modal */}
+      {isTrailerOpen && (
+        <div className="absolute inset-0 z-50 bg-black/90 flex flex-col justify-between p-5 animate-fade-in text-white">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-neutral-400">Трейлер · {movie.title}</span>
+            <button
+              onClick={() => setIsTrailerOpen(false)}
+              className="w-8 h-8 rounded-full bg-neutral-800 text-neutral-300 hover:text-white flex items-center justify-center cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Simulated Video Player */}
+          <div className="w-full aspect-video bg-neutral-900 rounded-2xl overflow-hidden relative flex items-center justify-center border border-neutral-800">
+            <MoviePoster
+              movieId={movie.id}
+              posterImage={movie.posterImage}
+              title={movie.title}
+              className="absolute inset-0 w-full h-full object-cover opacity-40 blur-xs"
+            />
+            <div className="relative z-10 text-center space-y-2">
+              <div className="w-14 h-14 rounded-full bg-[#005C53] flex items-center justify-center text-white mx-auto shadow-xl">
+                <Play size={24} fill="white" className="ml-1" />
+              </div>
+              <div className="text-xs font-bold text-white">Трейлер • 2 мин 12 сек</div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              setIsTrailerOpen(false);
+              onSelectSeats(selectedDate, selectedShowtime);
+            }}
+            className="w-full py-3.5 bg-[#005C53] hover:bg-[#046C62] text-white font-bold rounded-2xl text-xs transition-colors cursor-pointer"
+          >
+            Перейти к сеансам
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -303,7 +303,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
       bannerGradient: 'from-pink-900 via-neutral-900 to-neutral-950',
       posterBg: posterBg || '#221c2c',
       posterImage: posterImage || undefined,
-      tagColor: '#E52E84',
+      tagColor: '#005C53',
       hallId: selectedHallId,
       showtimes: sessions.map((s) => ({
         time: s.time,
@@ -345,7 +345,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
       {/* Preset Poster Selector */}
       <div className="space-y-2">
         <label className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
-          <Sparkles size={13} className="text-[#E52E84]" />
+          <Sparkles size={13} className="text-[#005C53]" />
           <span>Быстрый выбор популярной премьеры</span>
         </label>
         <div className="grid grid-cols-2 gap-2">
@@ -354,7 +354,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
               key={idx}
               type="button"
               onClick={() => handleSelectPreset(preset)}
-              className="p-2 bg-[#1A1A1E] border border-neutral-800 hover:border-[#E52E84] rounded-xl flex items-center gap-2.5 text-left transition-all cursor-pointer group"
+              className="p-2 bg-[#1A1A1E] border border-neutral-800 hover:border-[#005C53] rounded-xl flex items-center gap-2.5 text-left transition-all cursor-pointer group"
             >
               <img
                 src={preset.url}
@@ -388,7 +388,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
               placeholder="Например, Гладиатор 2"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+              className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
             />
           </div>
 
@@ -422,7 +422,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
 
               <div className="flex-1 space-y-1.5">
                 <label className="flex items-center justify-center gap-1.5 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-xl text-xs font-semibold cursor-pointer transition-colors border border-neutral-700/60">
-                  <Upload size={14} className="text-[#E52E84]" />
+                  <Upload size={14} className="text-[#005C53]" />
                   <span>Загрузить постер с устройства</span>
                   <input
                     type="file"
@@ -449,7 +449,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                 placeholder="Боевик / Драма"
                 value={genre}
                 onChange={(e) => setGenre(e.target.value)}
-                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
               />
             </div>
 
@@ -460,7 +460,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
               <select
                 value={age}
                 onChange={(e) => setAge(e.target.value)}
-                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
               >
                 <option value="0+">0+</option>
                 <option value="6+">6+</option>
@@ -488,7 +488,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                 max={300}
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(parseInt(e.target.value) || 120)}
-                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
               />
             </div>
 
@@ -502,7 +502,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                 max={5000}
                 value={basePrice}
                 onChange={(e) => setBasePrice(parseInt(e.target.value) || 350)}
-                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
               />
             </div>
           </div>
@@ -517,7 +517,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
               placeholder="Краткое описание фильма для гостей кинотеатра..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84] resize-none"
+              className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53] resize-none"
             />
           </div>
         </div>
@@ -538,7 +538,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
               />
             </div>
 
@@ -550,7 +550,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
               />
             </div>
           </div>
@@ -599,14 +599,14 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                   onClick={() => setSelectedHallId(h.id)}
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                     isSelected
-                      ? 'bg-[#291724] border-[#E52E84] shadow-md shadow-pink-900/30'
+                      ? 'bg-[#291724] border-[#005C53] shadow-md shadow-pink-900/30'
                       : 'bg-[#121214] border-neutral-800 hover:border-neutral-700'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        isSelected ? 'bg-[#E52E84]' : 'bg-neutral-700'
+                        isSelected ? 'bg-[#005C53]' : 'bg-neutral-700'
                       }`}
                     />
                     <div>
@@ -653,7 +653,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
           {/* Duration rule callout */}
           <div className="p-3 bg-neutral-900/90 border border-neutral-800 rounded-xl text-[11px] space-y-1">
             <div className="text-neutral-300 font-semibold flex items-center gap-1.5">
-              <Info size={13} className="text-[#E52E84]" />
+              <Info size={13} className="text-[#005C53]" />
               <span>Расчет тайминга с учетом длительности:</span>
             </div>
             <div className="text-neutral-400">
@@ -734,12 +734,12 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                 type="time"
                 value={newSessionTime}
                 onChange={(e) => setNewSessionTime(e.target.value)}
-                className="bg-[#121214] border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="bg-[#121214] border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#005C53]"
               />
               <select
                 value={newSessionFormat}
                 onChange={(e) => setNewSessionFormat(e.target.value as any)}
-                className="bg-[#121214] border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+                className="bg-[#121214] border border-neutral-700 rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#005C53]"
               >
                 <option value="2D">2D</option>
                 <option value="3D">3D</option>
@@ -760,7 +760,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
         {/* Save CTA */}
         <button
           type="submit"
-          className="w-full py-3.5 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-pink-900/40 cursor-pointer flex items-center justify-center gap-2"
+          className="w-full py-3.5 bg-[#005C53] hover:bg-[#046C62] active:scale-98 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-pink-900/40 cursor-pointer flex items-center justify-center gap-2"
         >
           <Check size={16} />
           <span>Опубликовать фильм в расписание</span>

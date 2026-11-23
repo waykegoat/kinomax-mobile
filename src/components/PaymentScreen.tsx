@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, CreditCard, Plus, Check, Trash2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, QrCode, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { Movie } from '../data/mockData';
 
@@ -42,72 +42,98 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
   onGoHome,
   onGoTickets,
 }) => {
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'sbp' | 'apple_pay'>('sbp');
-  const [isDone, setIsDone] = useState(false);
+  // Checkout sub-step: 'cart' (Screen 17) -> 'payment' (Screen 19-21) -> 'processing' -> 'success' (Screen 23)
+  const [step, setStep] = useState<'cart' | 'payment' | 'processing' | 'success'>('cart');
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'sbp' | 'sberpay'>('card');
+  const [showCancelModal, setShowCancelModal] = useState(false);
 
-  const formattedSeats = selectedSeats
+  // Form states
+  const [email, setEmail] = useState('ivan@example.com');
+  const [phone, setPhone] = useState('+7 (900) 123-45-67');
+  const [cardNumber, setCardNumber] = useState('2200 1234 5678 4242');
+  const [cardExpiry, setCardExpiry] = useState('12/28');
+  const [cardCvv, setCardCvv] = useState('789');
+
+  const formattedSeatsSummary = selectedSeats
     .map((s) => {
-      const [r, num] = s.split('-');
-      return `Ряд ${r}, место ${num}`;
+      const [r, seat] = s.split('-');
+      return `Ряд ${r}, место ${seat}`;
     })
     .join('; ');
 
   const handlePay = () => {
-    setIsDone(true);
-    // Fire confetti for celebration
-    try {
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#E52E84', '#F03A92', '#3B82F6', '#10B981'],
-      });
-    } catch {
-      // ignore
-    }
+    setStep('processing');
+    setTimeout(() => {
+      setStep('success');
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#005C53', '#046C62', '#EAE7DF', '#F5A623'],
+        });
+      } catch {
+        // ignore
+      }
 
-    const newTicket = {
-      id: `t-${Date.now().toString().slice(-4)}`,
-      movieId: movie.id,
-      movieTitle: movie.title,
-      date: `${selectedDate} 2024`,
-      time: selectedShowtime.time,
-      hall: selectedShowtime.hall,
-      seats: formattedSeats,
-      price: totalPrice,
-      qrCode: `KM-${Date.now().toString().slice(-6)}`,
-      bgGradient: 'from-[#5e6bc4] to-[#454c9c]',
-    };
+      const newTicket = {
+        id: `ticket-${Date.now()}`,
+        movieId: movie.id,
+        movieTitle: movie.title,
+        date: selectedDate,
+        time: selectedShowtime.time,
+        hall: selectedShowtime.hall,
+        seats: formattedSeatsSummary,
+        price: totalPrice,
+        qrCode: `KM-${Date.now().toString().slice(-6)}`,
+        bgGradient: 'from-[#0B353A] to-[#005C53]',
+      };
 
-    onSuccess(newTicket);
+      onSuccess(newTicket);
+    }, 1200);
   };
 
-  // Screen 9: SUCCESS SCREEN (Готово!)
-  if (isDone) {
+  // Screen 23 · Покупка завершена
+  if (step === 'success') {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-[#121214] text-white text-center animate-fade-in">
-        <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mb-6 animate-slide-up text-emerald-400">
-          <Check size={42} strokeWidth={3} />
+      <div className="flex-1 flex flex-col bg-[#FAF9F5] text-[#1A1A1A] p-6 animate-fade-in justify-between">
+        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-3">
+          <div className="w-20 h-20 rounded-full bg-[#EBF3F2] border border-[#005C53]/30 flex items-center justify-center text-[#005C53] mb-2 shadow-sm">
+            <CheckCircle2 size={44} strokeWidth={2.5} />
+          </div>
+
+          <span className="text-[10px] font-black tracking-widest text-[#005C53] uppercase">
+            Заказ #KM-{Date.now().toString().slice(-5)}
+          </span>
+          <h2 className="text-2xl font-black text-[#1A1A1A]">
+            Покупка завершена!
+          </h2>
+          <p className="text-xs text-[#7A7A7A] max-w-xs">
+            Электронные билеты отправлены на почту <strong className="text-[#1A1A1A]">{email}</strong>. Предъявите QR-код на входе в зал.
+          </p>
+
+          {/* Ticket mini summary card */}
+          <div className="w-full max-w-xs p-4 bg-white border border-[#EAE7DF] rounded-2xl shadow-xs text-left space-y-2 mt-4">
+            <div className="text-sm font-black text-[#1A1A1A]">{movie.title}</div>
+            <div className="text-xs text-[#7A7A7A]">
+              {selectedDate} · {selectedShowtime.time} · {selectedShowtime.hall}
+            </div>
+            <div className="text-xs text-[#1A1A1A] font-bold pt-1 border-t border-[#F2EFE7]">
+              {formattedSeatsSummary}
+            </div>
+          </div>
         </div>
 
-        <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight animate-slide-up">
-          Готово!
-        </h1>
-        <p className="text-sm text-neutral-400 max-w-[280px] mb-8 leading-relaxed animate-slide-up">
-          Билет успешно приобретен. Чек отправлен на email.
-        </p>
-
-        {/* Action Buttons matching Figma Screen 9 */}
-        <div className="w-full max-w-[320px] space-y-3">
+        <div className="space-y-2.5">
           <button
             onClick={onGoTickets}
-            className="w-full py-4 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-pink-900/40 cursor-pointer"
+            className="w-full py-3.5 bg-[#005C53] hover:bg-[#046C62] text-white font-bold rounded-2xl text-xs transition-colors shadow-sm cursor-pointer"
           >
-            Мои билеты
+            Перейти к билетам
           </button>
           <button
             onClick={onGoHome}
-            className="w-full py-3.5 bg-[#26262A] hover:bg-[#323238] active:scale-98 text-neutral-200 font-semibold rounded-2xl text-sm transition-all cursor-pointer"
+            className="w-full py-3 bg-white border border-[#EAE7DF] hover:border-[#005C53] text-[#1A1A1A] font-bold rounded-2xl text-xs transition-colors cursor-pointer"
           >
             На главную
           </button>
@@ -116,155 +142,292 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
     );
   }
 
-  // Screen 8: PAYMENT METHOD SCREEN
+  // Screen 22 · Обработка платежа
+  if (step === 'processing') {
+    return (
+      <div className="flex-1 flex flex-col bg-[#FAF9F5] text-[#1A1A1A] p-6 items-center justify-center text-center space-y-4">
+        <div className="w-16 h-16 rounded-full border-4 border-[#005C53] border-t-transparent animate-spin" />
+        <h3 className="text-lg font-black text-[#1A1A1A]">Обработка платежа</h3>
+        <p className="text-xs text-[#7A7A7A] max-w-xs">
+          Связываемся с банком для подтверждения оплаты заказа на сумму {totalPrice} ₽...
+        </p>
+      </div>
+    );
+  }
+
+  // Screen 17 · Корзина
+  if (step === 'cart') {
+    return (
+      <div className="flex-1 flex flex-col bg-[#FAF9F5] text-[#1A1A1A] overflow-hidden animate-fade-in relative">
+        {/* Header matching Screen 17 */}
+        <div className="p-4 border-b border-[#EAE7DF] bg-white flex items-center justify-between shrink-0">
+          <button
+            onClick={() => setShowCancelModal(true)}
+            className="flex items-center gap-1.5 text-xs font-bold text-[#005C53] hover:text-[#046C62] cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Назад</span>
+          </button>
+          <span className="text-base font-black text-[#1A1A1A]">Корзина</span>
+          <div className="w-10" />
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-24">
+          {/* Movie order card matching Screen 17 */}
+          <div className="bg-white border border-[#EAE7DF] rounded-2xl p-4 shadow-xs space-y-3">
+            <div className="pb-3 border-b border-[#F2EFE7]">
+              <h2 className="text-base font-black text-[#1A1A1A]">{movie.title}</h2>
+              <div className="text-xs text-[#7A7A7A] mt-0.5">
+                {selectedDate} · {selectedShowtime.time} · {selectedShowtime.hall}
+              </div>
+            </div>
+
+            {/* Individual seats breakdown */}
+            <div className="space-y-2">
+              {selectedSeats.map((s, idx) => {
+                const [r, num] = s.split('-');
+                return (
+                  <div key={idx} className="flex items-center justify-between text-xs py-1">
+                    <span className="font-medium text-[#1A1A1A]">
+                      Ряд {r}, место {num}
+                    </span>
+                    <span className="font-bold text-[#005C53]">{selectedShowtime.price} ₽</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Total matching Screen 17 */}
+            <div className="pt-3 border-t border-[#F2EFE7] flex items-center justify-between">
+              <span className="text-sm font-black text-[#1A1A1A]">Итого:</span>
+              <span className="text-lg font-black text-[#005C53]">{totalPrice} ₽</span>
+            </div>
+          </div>
+
+          <div className="p-3.5 bg-white border border-[#EAE7DF] rounded-2xl text-[11px] text-[#7A7A7A] space-y-1">
+            <div className="font-bold text-[#1A1A1A] flex items-center gap-1.5">
+              <ShieldCheck size={14} className="text-[#005C53]" />
+              <span>Проверьте данные</span>
+            </div>
+            <div>
+              Проверьте дату, время и выбранные места перед подтверждением и переходом к оплате.
+            </div>
+          </div>
+
+          <button
+            onClick={onBack}
+            className="w-full py-3 bg-white border border-[#EAE7DF] hover:border-[#005C53] text-[#1A1A1A] font-bold rounded-2xl text-xs transition-colors cursor-pointer"
+          >
+            Изменить места
+          </button>
+        </div>
+
+        {/* Sticky Proceed CTA */}
+        <div className="p-4 bg-white border-t border-[#EAE7DF] flex items-center justify-between shrink-0 shadow-sm">
+          <div>
+            <div className="text-[11px] text-[#7A7A7A]">Сумма к оплате</div>
+            <div className="text-base font-black text-[#005C53]">{totalPrice} ₽</div>
+          </div>
+          <button
+            onClick={() => setStep('payment')}
+            className="px-8 py-3.5 bg-[#005C53] hover:bg-[#046C62] text-white font-bold rounded-2xl text-xs transition-all shadow-sm cursor-pointer"
+          >
+            Оформить заказ
+          </button>
+        </div>
+
+        {/* Screen 25 · Отменить заказ? Modal */}
+        {showCancelModal && (
+          <div className="absolute inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-5 animate-fade-in">
+            <div className="w-full max-w-xs bg-white rounded-3xl p-5 shadow-2xl border border-[#EAE7DF] space-y-3.5 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+                <AlertTriangle size={24} />
+              </div>
+              <h3 className="text-base font-black text-[#1A1A1A]">Отменить заказ?</h3>
+              <p className="text-xs text-[#7A7A7A]">
+                Выбранные места будут освобождены. Покупка билетов на фильм «{movie.title}» не будет завершена.
+              </p>
+              <div className="pt-2 space-y-2">
+                <button
+                  onClick={onBack}
+                  className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-xs cursor-pointer"
+                >
+                  Да, отменить заказ
+                </button>
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="w-full py-2.5 bg-white border border-[#EAE7DF] text-[#1A1A1A] font-bold rounded-2xl text-xs cursor-pointer"
+                >
+                  Продолжить оформление
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Step 'payment' (Screens 18-21: Оформление, способ оплаты, реквизиты карты или СБП)
   return (
-    <div className="flex-1 flex flex-col bg-[#121214] text-white overflow-hidden animate-fade-in">
+    <div className="flex-1 flex flex-col bg-[#FAF9F5] text-[#1A1A1A] overflow-hidden animate-fade-in relative">
       {/* Header */}
-      <div className="p-4 border-b border-neutral-800/80 flex items-center justify-between shrink-0">
+      <div className="p-4 border-b border-[#EAE7DF] bg-white flex items-center justify-between shrink-0">
         <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] transition-colors"
+          onClick={() => setStep('cart')}
+          className="flex items-center gap-1.5 text-xs font-bold text-[#005C53] hover:text-[#046C62] cursor-pointer"
         >
           <ArrowLeft size={16} />
-          <span>Назад</span>
+          <span>В корзину</span>
         </button>
-        <span className="text-sm font-bold text-white">Способ оплаты</span>
+        <span className="text-base font-black text-[#1A1A1A]">Оплата заказа</span>
         <div className="w-10" />
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-3">
-        {/* Saved Credit Card */}
-        <div
-          onClick={() => setPaymentMethod('card')}
-          className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
-            paymentMethod === 'card'
-              ? 'bg-[#222226] border-[#E52E84] shadow-md'
-              : 'bg-[#1C1C1F] border-neutral-800 hover:border-neutral-700'
-          }`}
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-7 rounded-lg bg-sky-900/40 border border-sky-600/30 flex items-center justify-center text-sky-400">
-              <CreditCard size={18} />
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-white">Банковская карта</div>
-              <div className="text-[11px] text-neutral-400 tracking-wider">•••• 4242</div>
-            </div>
+      <div className="flex-1 overflow-y-auto p-5 space-y-4 pb-24">
+        {/* Contact details matching Screen 18 */}
+        <div className="bg-white border border-[#EAE7DF] rounded-2xl p-4 space-y-3 shadow-xs">
+          <div className="text-xs font-black uppercase tracking-wider text-[#7A7A7A]">
+            Контакты для билетов
           </div>
-          <div className="flex items-center gap-2">
+          <div>
+            <label className="block text-[11px] font-bold text-[#7A7A7A] mb-1">
+              Email для электронных билетов
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-[#FAF9F5] border border-[#EAE7DF] rounded-xl px-3 py-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#005C53]"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] font-bold text-[#7A7A7A] mb-1">
+              Телефон
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full bg-[#FAF9F5] border border-[#EAE7DF] rounded-xl px-3 py-2 text-xs text-[#1A1A1A] focus:outline-none focus:border-[#005C53]"
+            />
+          </div>
+        </div>
+
+        {/* Payment method selector matching Screen 19 */}
+        <div className="space-y-2">
+          <div className="text-xs font-black uppercase tracking-wider text-[#7A7A7A]">
+            Способ оплаты
+          </div>
+          <div className="grid grid-cols-3 gap-2">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-              }}
-              className="text-neutral-500 hover:text-red-400 p-1"
-            >
-              <Trash2 size={16} />
-            </button>
-            <div
-              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                paymentMethod === 'card' ? 'border-[#E52E84]' : 'border-neutral-600'
+              onClick={() => setPaymentMethod('card')}
+              className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                paymentMethod === 'card'
+                  ? 'bg-[#EBF3F2] border-[#005C53] shadow-xs'
+                  : 'bg-white border-[#EAE7DF]'
               }`}
             >
-              {paymentMethod === 'card' && <div className="w-2.5 h-2.5 rounded-full bg-[#E52E84]" />}
-            </div>
+              <CreditCard size={18} className="text-[#005C53] mb-1.5" />
+              <div className="text-xs font-bold text-[#1A1A1A]">Карта</div>
+              <div className="text-[10px] text-[#7A7A7A]">Мир, Visa</div>
+            </button>
+
+            <button
+              onClick={() => setPaymentMethod('sbp')}
+              className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                paymentMethod === 'sbp'
+                  ? 'bg-[#EBF3F2] border-[#005C53] shadow-xs'
+                  : 'bg-white border-[#EAE7DF]'
+              }`}
+            >
+              <QrCode size={18} className="text-[#005C53] mb-1.5" />
+              <div className="text-xs font-bold text-[#1A1A1A]">СБП</div>
+              <div className="text-[10px] text-[#7A7A7A]">0% комиссия</div>
+            </button>
+
+            <button
+              onClick={() => setPaymentMethod('sberpay')}
+              className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                paymentMethod === 'sberpay'
+                  ? 'bg-[#EBF3F2] border-[#005C53] shadow-xs'
+                  : 'bg-white border-[#EAE7DF]'
+              }`}
+            >
+              <div className="w-5 h-5 rounded-full bg-emerald-600 text-white font-black text-[9px] flex items-center justify-center mb-1.5">
+                S
+              </div>
+              <div className="text-xs font-bold text-[#1A1A1A]">SberPay</div>
+              <div className="text-[10px] text-[#7A7A7A]">В 1 клик</div>
+            </button>
           </div>
         </div>
 
-        {/* Add new card */}
-        <button
-          onClick={() => alert('Форма добавления новой банковской карты')}
-          className="w-full flex items-center gap-3 p-4 bg-[#1C1C1F] border border-dashed border-neutral-700 rounded-2xl text-xs font-medium text-neutral-300 hover:text-white hover:border-neutral-500 transition-colors"
-        >
-          <div className="w-7 h-7 rounded-full bg-[#26262A] flex items-center justify-center text-white">
-            <Plus size={16} />
-          </div>
-          <span>Добавить карту</span>
-        </button>
-
-        {/* SBP option */}
-        <div
-          onClick={() => setPaymentMethod('sbp')}
-          className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
-            paymentMethod === 'sbp'
-              ? 'bg-[#222226] border-[#E52E84] shadow-md'
-              : 'bg-[#1C1C1F] border-neutral-800 hover:border-neutral-700'
-          }`}
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-7 rounded-lg bg-emerald-900/40 border border-emerald-600/30 flex items-center justify-center text-emerald-400 font-black text-xs">
-              СБП
-            </div>
+        {/* Card input form matching Screen 20 */}
+        {paymentMethod === 'card' && (
+          <div className="bg-white border border-[#EAE7DF] rounded-2xl p-4 space-y-3 shadow-xs">
             <div>
-              <div className="text-xs font-semibold text-white">СБП (Система быстрых платежей)</div>
-              <div className="text-[11px] text-neutral-400">Оплата через приложение банка</div>
+              <label className="block text-[11px] font-bold text-[#7A7A7A] mb-1">
+                Номер карты
+              </label>
+              <input
+                type="text"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(e.target.value)}
+                className="w-full bg-[#FAF9F5] border border-[#EAE7DF] rounded-xl px-3 py-2 text-xs font-mono text-[#1A1A1A] focus:outline-none focus:border-[#005C53]"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-[#7A7A7A] mb-1">
+                  Срок действия
+                </label>
+                <input
+                  type="text"
+                  value={cardExpiry}
+                  onChange={(e) => setCardExpiry(e.target.value)}
+                  placeholder="MM/YY"
+                  className="w-full bg-[#FAF9F5] border border-[#EAE7DF] rounded-xl px-3 py-2 text-xs font-mono text-[#1A1A1A] focus:outline-none focus:border-[#005C53]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#7A7A7A] mb-1">
+                  CVV / CVC
+                </label>
+                <input
+                  type="password"
+                  maxLength={3}
+                  value={cardCvv}
+                  onChange={(e) => setCardCvv(e.target.value)}
+                  className="w-full bg-[#FAF9F5] border border-[#EAE7DF] rounded-xl px-3 py-2 text-xs font-mono text-[#1A1A1A] focus:outline-none focus:border-[#005C53]"
+                />
+              </div>
             </div>
           </div>
-          <div
-            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-              paymentMethod === 'sbp' ? 'border-[#E52E84]' : 'border-neutral-600'
-            }`}
-          >
-            {paymentMethod === 'sbp' && <div className="w-2.5 h-2.5 rounded-full bg-[#E52E84]" />}
-          </div>
-        </div>
+        )}
 
-        {/* Apple Pay / Mir Pay */}
-        <div
-          onClick={() => setPaymentMethod('apple_pay')}
-          className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
-            paymentMethod === 'apple_pay'
-              ? 'bg-[#222226] border-[#E52E84] shadow-md'
-              : 'bg-[#1C1C1F] border-neutral-800 hover:border-neutral-700'
-          }`}
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-7 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white text-xs font-bold">
-              Pay
+        {/* SBP screen matching Screen 21 */}
+        {paymentMethod === 'sbp' && (
+          <div className="bg-white border border-[#EAE7DF] rounded-2xl p-4 text-center space-y-3 shadow-xs">
+            <div className="w-36 h-36 mx-auto bg-[#FAF9F5] border-2 border-dashed border-[#005C53]/40 rounded-2xl flex items-center justify-center p-2">
+              <QrCode size={110} className="text-[#005C53]" />
             </div>
-            <div>
-              <div className="text-xs font-semibold text-white">Apple Pay / SberPay</div>
-              <div className="text-[11px] text-neutral-400">Быстрая оплата в 1 касание</div>
+            <div className="text-xs text-[#7A7A7A]">
+              Отсканируйте QR-код в приложении вашего банка для моментальной оплаты без комиссии
             </div>
           </div>
-          <div
-            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-              paymentMethod === 'apple_pay' ? 'border-[#E52E84]' : 'border-neutral-600'
-            }`}
-          >
-            {paymentMethod === 'apple_pay' && <div className="w-2.5 h-2.5 rounded-full bg-[#E52E84]" />}
-          </div>
-        </div>
-
-        {/* Order Summary box */}
-        <div className="mt-6 p-4 bg-[#18181A] rounded-2xl border border-neutral-800 text-xs space-y-2">
-          <div className="font-bold text-white text-sm pb-1 border-b border-neutral-800">
-            Детали заказа
-          </div>
-          <div className="flex justify-between text-neutral-400">
-            <span>Фильм:</span>
-            <span className="text-white font-medium">{movie.title}</span>
-          </div>
-          <div className="flex justify-between text-neutral-400">
-            <span>Сеанс:</span>
-            <span className="text-white">{selectedDate}, {selectedShowtime.time} ({selectedShowtime.hall})</span>
-          </div>
-          <div className="flex justify-between text-neutral-400">
-            <span>Места:</span>
-            <span className="text-white font-medium">{formattedSeats}</span>
-          </div>
-          <div className="flex justify-between text-neutral-300 font-bold pt-2 border-t border-neutral-800 text-sm">
-            <span>К оплате:</span>
-            <span className="text-[#E52E84] text-base">{totalPrice} ₽</span>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Sticky Bottom CTA matching Figma: "Оплатить 840 ₽" */}
-      <div className="p-4 bg-[#18181B] border-t border-neutral-800 shrink-0">
+      {/* Pay CTA */}
+      <div className="p-4 bg-white border-t border-[#EAE7DF] flex items-center justify-between shrink-0 shadow-md">
+        <div>
+          <div className="text-[11px] text-[#7A7A7A]">К списанию</div>
+          <div className="text-base font-black text-[#005C53]">{totalPrice} ₽</div>
+        </div>
         <button
           onClick={handlePay}
-          className="w-full py-4 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-pink-900/40 cursor-pointer"
+          className="px-8 py-3.5 bg-[#005C53] hover:bg-[#046C62] text-white font-bold rounded-2xl text-xs transition-all shadow-sm cursor-pointer"
         >
           Оплатить {totalPrice} ₽
         </button>

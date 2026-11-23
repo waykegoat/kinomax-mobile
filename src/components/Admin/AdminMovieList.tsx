@@ -28,7 +28,7 @@ export const AdminMovieList: React.FC<AdminMovieListProps> = ({
         </div>
         <button
           onClick={onAddMovieClick}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E52E84] hover:bg-[#F03A92] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-pink-900/40 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#005C53] hover:bg-[#046C62] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-pink-900/40 cursor-pointer"
         >
           <Plus size={14} />
           <span>Добавить</span>
@@ -77,7 +77,7 @@ export const AdminMovieList: React.FC<AdminMovieListProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between text-xs mt-2 pt-1 border-t border-neutral-800/80">
-                    <span className="font-bold text-[#E52E84]">от {movie.priceFrom} ₽</span>
+                    <span className="font-bold text-[#005C53]">от {movie.priceFrom} ₽</span>
                     {hall && (
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300">
                         {hall.name}

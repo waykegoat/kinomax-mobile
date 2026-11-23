@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, SlidersHorizontal, X } from 'lucide-react';
+import { Search, SlidersHorizontal, X, ChevronRight } from 'lucide-react';
 import { MOVIES, SEARCH_HISTORY_ITEMS } from '../data/mockData';
 import type { Movie } from '../data/mockData';
 import { MoviePoster } from './MoviePoster';
@@ -49,77 +49,107 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
   });
 
   return (
-    <div className="flex-1 flex flex-col overflow-y-auto bg-[#121214] text-white">
-      {/* Top Search Input matching Figma Screen 4 */}
-      <div className="p-5 pb-3 border-b border-neutral-800/80 shrink-0">
-        <h1 className="text-2xl font-black text-white tracking-tight mb-4">Поиск</h1>
+    <div className="flex-1 flex flex-col overflow-y-auto bg-[#FAF9F5] text-[#1A1A1A]">
+      {/* Top Search Header matching Figma Screen 09-10 */}
+      <div className="p-5 pb-3 border-b border-[#EAE7DF] shrink-0 bg-[#FAF9F5] space-y-3">
+        <h1 className="text-2xl font-black text-[#1A1A1A] tracking-tight">
+          {query ? 'Результаты поиска' : 'Поиск'}
+        </h1>
 
-        <div className="flex items-center gap-3">
-          <div className="flex-1 relative flex items-center">
-            <Search size={18} className="absolute left-3.5 text-neutral-400" />
+        <div className="space-y-2">
+          <label className="block text-[11px] font-bold text-[#7A7A7A] uppercase tracking-wider">
+            Название фильма
+          </label>
+          <div className="relative flex items-center">
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Фильмы, персоны, кинотеатры"
-              className="w-full bg-[#1C1C20] border border-neutral-700/60 rounded-2xl py-3 pl-10 pr-10 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-[#E52E84] transition-colors"
+              placeholder="Например, Битва моторов"
+              className="w-full bg-white border border-[#EAE7DF] rounded-2xl py-3 pl-4 pr-10 text-xs text-[#1A1A1A] placeholder-[#9A9890] focus:outline-none focus:border-[#005C53] transition-colors shadow-2xs"
             />
             {query && (
               <button
                 onClick={() => setQuery('')}
-                className="absolute right-3.5 text-neutral-400 hover:text-white"
+                className="absolute right-3.5 text-[#9A9890] hover:text-[#1A1A1A] cursor-pointer"
               >
                 <X size={16} />
               </button>
             )}
           </div>
+        </div>
+
+        {/* Buttons row: Найти + Фильтры */}
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <button
+            type="button"
+            className="py-2.5 bg-[#005C53] hover:bg-[#046C62] text-white font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+          >
+            <Search size={14} />
+            <span>Найти</span>
+          </button>
 
           <button
+            type="button"
             onClick={() => setIsFilterOpen(true)}
-            className="w-11 h-11 rounded-2xl bg-[#1C1C20] border border-neutral-700/60 flex items-center justify-center text-neutral-300 hover:text-white hover:border-[#E52E84] transition-colors shrink-0 cursor-pointer"
+            className="py-2.5 bg-white border border-[#EAE7DF] hover:border-[#005C53] text-[#1A1A1A] font-bold rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
-            <SlidersHorizontal size={18} />
+            <SlidersHorizontal size={14} className="text-[#005C53]" />
+            <span>
+              {filters.genre !== 'Все' || filters.price !== 'Любая' ? 'Фильтры · акт.' : 'Фильтры'}
+            </span>
           </button>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="p-5 space-y-5 flex-1">
-        {/* Search History */}
+        {/* Search History matching Figma Screen 09 */}
         {!query && history.length > 0 && (
           <div>
-            <div className="text-xs font-bold text-neutral-400 mb-3 uppercase tracking-wider">
-              Вы недавно искали
+            <div className="text-xs font-bold text-[#7A7A7A] mb-2.5 uppercase tracking-wider">
+              История поиска
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2">
               {history.map((item, idx) => (
                 <div
                   key={idx}
                   onClick={() => setQuery(item)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C1C20] border border-neutral-800 text-xs text-neutral-300 hover:text-white hover:border-neutral-700 cursor-pointer transition-colors"
+                  className="flex items-center justify-between p-3.5 bg-white border border-[#EAE7DF] rounded-2xl text-xs text-[#1A1A1A] font-medium hover:border-[#005C53] cursor-pointer transition-colors shadow-2xs"
                 >
                   <span>{item}</span>
-                  <button
-                    onClick={(e) => removeHistoryItem(item, e)}
-                    className="text-neutral-500 hover:text-neutral-300 p-0.5"
-                  >
-                    <X size={12} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => removeHistoryItem(item, e)}
+                      className="text-[#9A9890] hover:text-red-500 p-0.5 cursor-pointer"
+                    >
+                      <X size={13} />
+                    </button>
+                    <ChevronRight size={15} className="text-[#A09D94]" />
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Results */}
+        {/* Results / Recommendations matching Figma Screen 09-10 */}
         <div>
-          <div className="text-xs font-bold text-neutral-400 mb-3 uppercase tracking-wider">
-            {query ? `Найдено: ${filteredMovies.length}` : 'Рекомендуем посмотреть'}
+          <div className="text-xs font-bold text-[#7A7A7A] mb-3 uppercase tracking-wider">
+            {query
+              ? `Найдено фильмов: ${filteredMovies.length}`
+              : 'Вам может понравиться'}
           </div>
 
           {filteredMovies.length === 0 ? (
-            <div className="text-center py-12 text-neutral-500 text-xs">
+            <div className="text-center py-12 text-[#7A7A7A] text-xs bg-white rounded-2xl border border-[#EAE7DF] p-6">
               Ничего не найдено по вашему запросу
+              <button
+                onClick={() => setQuery('')}
+                className="block mx-auto mt-3 px-4 py-2 bg-[#005C53] text-white rounded-xl text-xs font-bold"
+              >
+                Сбросить поиск
+              </button>
             </div>
           ) : (
             <div className="space-y-3 pb-12">
@@ -127,9 +157,9 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                 <div
                   key={movie.id}
                   onClick={() => onSelectMovie(movie)}
-                  className="flex gap-3.5 p-3 bg-[#1A1A1E] border border-neutral-800/80 rounded-2xl hover:border-neutral-700 transition-all cursor-pointer shadow-md group"
+                  className="flex gap-3.5 p-3.5 bg-white border border-[#EAE7DF] rounded-2xl hover:border-[#005C53] transition-all cursor-pointer shadow-xs group"
                 >
-                  <div className="w-16 h-22 rounded-xl overflow-hidden shrink-0 shadow-md">
+                  <div className="w-16 h-22 rounded-xl overflow-hidden shrink-0 shadow-xs border border-[#EAE7DF]">
                     <MoviePoster
                       movieId={movie.id}
                       posterImage={movie.posterImage}
@@ -139,21 +169,27 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center">
-                    <h3 className="text-sm font-black text-white group-hover:text-[#E52E84] transition-colors leading-tight">
+                    <h3 className="text-sm font-black text-[#1A1A1A] group-hover:text-[#005C53] transition-colors leading-tight">
                       {movie.title}
                     </h3>
-                    <div className="text-[11px] text-neutral-400 mt-1">
-                      {movie.age} | {movie.duration}
+                    <div className="text-[11px] text-[#7A7A7A] mt-1">
+                      {movie.age} · {movie.genre} · {movie.duration}
                     </div>
-                    <div className="text-[11px] text-neutral-400 mt-0.5">
-                      {movie.genre}
-                    </div>
-                    <div className="text-xs font-bold text-[#E52E84] mt-2">
+                    <div className="text-xs font-bold text-[#005C53] mt-2">
                       от {movie.priceFrom} ₽
                     </div>
                   </div>
                 </div>
               ))}
+
+              {query && (
+                <button
+                  onClick={() => setQuery('')}
+                  className="w-full py-3 bg-white border border-[#EAE7DF] hover:border-[#005C53] text-[#1A1A1A] rounded-2xl text-xs font-bold transition-all shadow-xs cursor-pointer mt-4"
+                >
+                  Сбросить поиск
+                </button>
+              )}
             </div>
           )}
         </div>

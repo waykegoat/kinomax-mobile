@@ -57,7 +57,7 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ stats }) => {
         <div className="bg-[#1A1A1E] border border-neutral-800 rounded-2xl p-3.5 space-y-1 shadow-lg">
           <div className="flex items-center justify-between text-neutral-400">
             <span className="text-[10px] font-bold uppercase tracking-wider">Куплено билетов</span>
-            <TicketIcon size={14} className="text-[#E52E84]" />
+            <TicketIcon size={14} className="text-[#005C53]" />
           </div>
           <div className="text-xl font-black text-white">{stats.totalSold} шт.</div>
           <div className="text-[10px] text-emerald-400 flex items-center gap-0.5">
@@ -109,11 +109,11 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ stats }) => {
       {topMovie && (
         <div className="p-3.5 rounded-2xl bg-gradient-to-r from-pink-950/60 via-purple-950/50 to-neutral-900 border border-pink-500/40 shadow-xl flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#E52E84]/20 border border-[#E52E84]/40 flex items-center justify-center text-[#E52E84] shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-[#005C53]/20 border border-[#005C53]/40 flex items-center justify-center text-[#005C53] shrink-0">
               <Award size={22} />
             </div>
             <div>
-              <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#E52E84]">
+              <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#005C53]">
                 Лидер проката по билетам
               </div>
               <div className="text-sm font-black text-white">{topMovie.movieTitle}</div>
@@ -158,7 +158,7 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ stats }) => {
                 {/* Progress bar */}
                 <div className="w-full h-2 rounded-full bg-neutral-800 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#E52E84] to-purple-600 transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-[#005C53] to-purple-600 transition-all duration-500"
                     style={{ width: `${Math.max(6, Math.min(100, share))}%` }}
                   />
                 </div>
@@ -183,7 +183,7 @@ export const AdminStats: React.FC<AdminStatsProps> = ({ stats }) => {
             <button
               onClick={() => setFilterType('all')}
               className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-colors ${
-                filterType === 'all' ? 'bg-[#E52E84] text-white' : 'text-neutral-400'
+                filterType === 'all' ? 'bg-[#005C53] text-white' : 'text-neutral-400'
               }`}
             >
               Все

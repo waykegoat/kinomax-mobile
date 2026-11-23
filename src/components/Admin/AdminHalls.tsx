@@ -111,7 +111,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
         </h2>
         <button
           onClick={handleCreateNewHall}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E52E84] hover:bg-[#F03A92] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-pink-950/40 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#005C53] hover:bg-[#046C62] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-pink-950/40 cursor-pointer"
         >
           <Plus size={14} />
           <span>Новый зал</span>
@@ -134,7 +134,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
               onClick={() => handleSelectHall(h)}
               className={`px-3.5 py-2 rounded-2xl text-xs font-bold shrink-0 transition-all cursor-pointer border ${
                 isSelected
-                  ? 'bg-[#291724] border-[#E52E84] text-white shadow-md shadow-pink-900/30'
+                  ? 'bg-[#291724] border-[#005C53] text-white shadow-md shadow-pink-900/30'
                   : 'bg-[#1C1C20] border-neutral-800 text-neutral-400 hover:text-white'
               }`}
             >
@@ -183,7 +183,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
             type="text"
             value={editingHall.name}
             onChange={(e) => setEditingHall({ ...editingHall, name: e.target.value })}
-            className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+            className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#005C53]"
           />
         </div>
 
@@ -198,7 +198,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
               onClick={() => handleApplyPreset('standard')}
               className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                 editingHall.type === 'standard'
-                  ? 'bg-neutral-800/90 border-[#E52E84] shadow-sm'
+                  ? 'bg-neutral-800/90 border-[#005C53] shadow-sm'
                   : 'bg-[#141416] border-neutral-800 hover:border-neutral-700'
               }`}
             >
@@ -242,7 +242,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-[11px] font-bold text-neutral-400">Рядов</label>
-              <span className="text-xs font-mono font-bold text-[#E52E84]">{editingHall.rows}</span>
+              <span className="text-xs font-mono font-bold text-[#005C53]">{editingHall.rows}</span>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -262,7 +262,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
                 onChange={(e) =>
                   setEditingHall({ ...editingHall, rows: parseInt(e.target.value) || 3 })
                 }
-                className="flex-1 accent-[#E52E84]"
+                className="flex-1 accent-[#005C53]"
               />
               <button
                 type="button"
@@ -279,7 +279,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-[11px] font-bold text-neutral-400">Мест в ряду</label>
-              <span className="text-xs font-mono font-bold text-[#E52E84]">
+              <span className="text-xs font-mono font-bold text-[#005C53]">
                 {editingHall.seatsPerRow}
               </span>
             </div>
@@ -307,7 +307,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
                     seatsPerRow: parseInt(e.target.value) || 4,
                   })
                 }
-                className="flex-1 accent-[#E52E84]"
+                className="flex-1 accent-[#005C53]"
               />
               <button
                 type="button"
@@ -341,7 +341,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
         <button
           type="button"
           onClick={handleSaveHall}
-          className="w-full py-3 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-pink-900/40 cursor-pointer flex items-center justify-center gap-2"
+          className="w-full py-3 bg-[#005C53] hover:bg-[#046C62] active:scale-98 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-pink-900/40 cursor-pointer flex items-center justify-center gap-2"
         >
           <Check size={15} />
           <span>Применить изменения зала</span>
@@ -352,7 +352,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
       <div className="bg-[#1A1A1E] border border-neutral-800 rounded-2xl p-4 shadow-lg space-y-3">
         <div className="flex items-center justify-between">
           <div className="text-xs font-bold text-white flex items-center gap-1.5">
-            <Sliders size={14} className="text-[#E52E84]" />
+            <Sliders size={14} className="text-[#005C53]" />
             <span>Интерактивная схема зала</span>
           </div>
           <span className="text-[10px] text-neutral-400 uppercase tracking-widest">
@@ -371,7 +371,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
                     ? '#A855F7'
                     : editingHall.type === 'imax'
                     ? '#38BDF8'
-                    : '#E52E84'
+                    : '#005C53'
                 }
                 strokeWidth="3"
                 fill="none"
@@ -433,7 +433,7 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
             <span>Свободно</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3.5 h-3.5 rounded bg-[#E52E84] border border-[#E52E84]" />
+            <div className="w-3.5 h-3.5 rounded bg-[#005C53] border border-[#005C53]" />
             <span>Выбрано</span>
           </div>
           <div className="flex items-center gap-1.5">

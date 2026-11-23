@@ -24,15 +24,15 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
   onBack,
   onProceedToPayment,
 }) => {
-  // Pre-selected seats matching Figma node 2047-2 flow (Row 5, seats 4 and 5)
-  const [selectedSeats, setSelectedSeats] = useState<string[]>(['5-4', '5-5']);
+  // Pre-selected seats matching Figma Screen 16 (Row 3, seats 4 and 5)
+  const [selectedSeats, setSelectedSeats] = useState<string[]>(['3-4', '3-5']);
 
-  // Occupied seats
+  // Occupied seats matching Figma
   const occupiedSeats = new Set([
-    '2-3', '2-4', '3-5', '3-6', '3-7', '4-2', '4-3', '4-8', '4-9', '6-1', '6-2', '6-9', '6-10'
+    '1-2', '1-3', '2-5', '2-6', '3-1', '3-2', '4-7', '4-8', '5-3', '5-4', '6-8', '6-9'
   ]);
 
-  // Find active hall from passed halls or use default
+  // Find active hall configuration
   const activeHall = halls?.find(
     (h) => h.name === selectedShowtime.hall || h.id === movie.hallId
   ) || halls?.[0];
@@ -55,21 +55,35 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
   const seatPrice = selectedShowtime.price || 420;
   const totalPrice = selectedSeats.length * seatPrice;
 
+  // Formatted seat string matching Figma: "Ряд 3 · места 4, 5"
+  const formattedSeatsSummary = () => {
+    if (selectedSeats.length === 0) return 'Места не выбраны';
+    const byRow: Record<string, string[]> = {};
+    selectedSeats.forEach((s) => {
+      const [r, seat] = s.split('-');
+      if (!byRow[r]) byRow[r] = [];
+      byRow[r].push(seat);
+    });
+    return Object.entries(byRow)
+      .map(([r, sList]) => `Ряд ${r} · мест${sList.length > 1 ? 'а' : 'о'} ${sList.join(', ')}`)
+      .join('; ');
+  };
+
   return (
-    <div className="flex-1 flex flex-col bg-[#121214] text-white overflow-hidden animate-fade-in relative">
-      {/* Top Header */}
-      <div className="p-4 border-b border-neutral-800/80 flex items-center justify-between shrink-0">
+    <div className="flex-1 flex flex-col bg-[#FAF9F5] text-[#1A1A1A] overflow-hidden animate-fade-in relative">
+      {/* Top Header matching Figma Screen 16 */}
+      <div className="p-4 border-b border-[#EAE7DF] bg-white flex items-center justify-between shrink-0 shadow-2xs">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-bold text-[#005C53] hover:text-[#046C62] transition-colors cursor-pointer"
         >
           <ArrowLeft size={16} />
           <span>Назад</span>
         </button>
         <div className="text-center">
-          <div className="text-sm font-bold text-white tracking-wide">{movie.title}</div>
-          <div className="text-[11px] text-neutral-400">
-            {selectedDate}, {selectedShowtime.time} • {selectedShowtime.hall}
+          <div className="text-sm font-black text-[#1A1A1A] tracking-tight">{movie.title}</div>
+          <div className="text-[11px] text-[#7A7A7A]">
+            {selectedDate} · {selectedShowtime.time} · {selectedShowtime.hall} · {selectedShowtime.format}
           </div>
         </div>
         <div className="w-10" />
@@ -77,41 +91,40 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
 
       {/* Main Hall Interactive Area */}
       <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col items-center justify-between">
-        {/* Cinema Curved Screen representation */}
-        <div className="w-full max-w-[320px] mb-8 flex flex-col items-center">
+        {/* Cinema Curved Screen representation matching Screen 16 */}
+        <div className="w-full max-w-[320px] mb-6 flex flex-col items-center">
           <div className="w-full h-8 relative flex items-center justify-center">
-            {/* Screen curve stroke */}
-            <svg viewBox="0 0 300 40" className="w-full h-full overflow-visible">
+            <svg viewBox="0 0 300 35" className="w-full h-full overflow-visible">
               <defs>
-                <linearGradient id="screen-glow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#E52E84" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#E52E84" stopOpacity="0" />
+                <linearGradient id="screen-teal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#005C53" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#005C53" stopOpacity="0" />
                 </linearGradient>
               </defs>
               <path
-                d="M 10 32 Q 150 4 290 32"
-                stroke="#6E6E78"
-                strokeWidth="3.5"
+                d="M 15 28 Q 150 4 285 28"
+                stroke="#005C53"
+                strokeWidth="3"
                 fill="none"
                 strokeLinecap="round"
               />
               <path
-                d="M 10 32 Q 150 4 290 32 L 280 60 L 20 60 Z"
-                fill="url(#screen-glow)"
-                opacity="0.25"
+                d="M 15 28 Q 150 4 285 28 L 275 48 L 25 48 Z"
+                fill="url(#screen-teal)"
+                opacity="0.3"
               />
             </svg>
           </div>
-          <span className="text-[10px] uppercase font-bold tracking-[0.3em] text-neutral-400 -mt-1">
+          <span className="text-[10px] uppercase font-black tracking-[0.25em] text-[#7A7A7A] -mt-1">
             ЭКРАН
           </span>
         </div>
 
-        {/* Seats Grid */}
+        {/* Dynamic Seats Grid */}
         <div className="w-full max-w-[360px] overflow-x-auto space-y-2.5 my-auto py-2">
           {rows.map((row) => (
             <div key={row} className="flex items-center justify-between gap-1.5 min-w-fit mx-auto">
-              <span className="text-[10px] font-bold text-neutral-400 w-3.5 text-center select-none">
+              <span className="text-[10px] font-bold text-[#A09D94] w-3.5 text-center select-none">
                 {row}
               </span>
               <div className="flex items-center justify-center gap-1.5 flex-1">
@@ -127,12 +140,12 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
                       onClick={() => toggleSeat(row, seatNum)}
                       disabled={isOccupied}
                       title={`Ряд ${row}, Место ${seatNum}`}
-                      className={`w-5 h-5 rounded-[4px] text-[8px] font-medium transition-all flex items-center justify-center cursor-pointer ${
+                      className={`w-5 h-5 rounded-[5px] text-[8px] font-bold transition-all flex items-center justify-center cursor-pointer ${
                         isSelected
-                          ? 'bg-[#E52E84] text-white shadow-md shadow-pink-900/50 scale-110 z-10'
+                          ? 'bg-[#005C53] text-white shadow-sm scale-110 z-10'
                           : isOccupied
-                          ? 'bg-[#222226] text-transparent cursor-not-allowed border border-neutral-800'
-                          : 'bg-[#3A3A40] text-transparent hover:bg-[#4E4E56] border border-neutral-600/30'
+                          ? 'bg-[#D5D2C9] text-transparent cursor-not-allowed opacity-50'
+                          : 'bg-white text-[#7A7A7A] hover:border-[#005C53] border border-[#D5D2C9]'
                       }`}
                     >
                       {isSelected ? seatNum : ''}
@@ -140,51 +153,51 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
                   );
                 })}
               </div>
-              <span className="text-[10px] font-bold text-neutral-400 w-3.5 text-center select-none">
+              <span className="text-[10px] font-bold text-[#A09D94] w-3.5 text-center select-none">
                 {row}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Legend */}
-        <div className="flex items-center justify-center gap-6 mt-8 py-3 px-4 bg-[#1A1A1E] rounded-2xl border border-neutral-800/80">
+        {/* Legend matching Screen 16 */}
+        <div className="flex items-center justify-center gap-6 mt-6 py-2.5 px-4 bg-white rounded-2xl border border-[#EAE7DF] shadow-2xs">
           <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded bg-[#3A3A40] border border-neutral-600/30" />
-            <span className="text-xs text-neutral-400">Свободно</span>
+            <span className="w-3.5 h-3.5 rounded bg-white border border-[#D5D2C9]" />
+            <span className="text-xs text-[#7A7A7A]">Свободно</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded bg-[#E52E84]" />
-            <span className="text-xs text-white font-medium">Выбрано</span>
+            <span className="w-3.5 h-3.5 rounded bg-[#005C53]" />
+            <span className="text-xs text-[#1A1A1A] font-bold">Выбрано</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3.5 h-3.5 rounded bg-[#222226] border border-neutral-800" />
-            <span className="text-xs text-neutral-400">Занято</span>
+            <span className="w-3.5 h-3.5 rounded bg-[#D5D2C9]" />
+            <span className="text-xs text-[#7A7A7A]">Занято</span>
           </div>
         </div>
       </div>
 
-      {/* Sticky Bottom Bar */}
-      <div className="p-4 bg-[#18181B] border-t border-neutral-800 flex items-center justify-between shrink-0">
+      {/* Floating Bottom Card matching Screen 16 */}
+      <div className="p-4 bg-white border-t border-[#EAE7DF] flex items-center justify-between shrink-0 shadow-md">
         <div>
-          <div className="text-xs text-neutral-400">
-            Выбрано мест: <span className="text-white font-bold">{selectedSeats.length}</span>
+          <div className="text-xs font-bold text-[#1A1A1A]">
+            {formattedSeatsSummary()}
           </div>
-          <div className="text-lg font-black text-white">
-            {totalPrice} ₽
+          <div className="text-sm font-black text-[#005C53] mt-0.5">
+            {selectedSeats.length} билет{selectedSeats.length === 1 ? '' : 'а'} × {seatPrice} ₽ = {totalPrice} ₽
           </div>
         </div>
 
         <button
           onClick={() => onProceedToPayment(selectedSeats, totalPrice)}
           disabled={selectedSeats.length === 0}
-          className={`px-8 py-3.5 rounded-2xl text-sm font-bold transition-all shadow-lg ${
+          className={`px-6 py-3.5 rounded-2xl text-xs font-bold transition-all shadow-sm ${
             selectedSeats.length > 0
-              ? 'bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white shadow-pink-900/40 cursor-pointer'
-              : 'bg-neutral-800 text-neutral-500 cursor-not-allowed'
+              ? 'bg-[#005C53] hover:bg-[#046C62] active:scale-98 text-white cursor-pointer'
+              : 'bg-[#EAE7DF] text-[#A09D94] cursor-not-allowed'
           }`}
         >
-          Далее
+          В корзину
         </button>
       </div>
     </div>
