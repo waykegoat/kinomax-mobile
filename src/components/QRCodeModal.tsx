@@ -55,7 +55,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ ticket, onClose }) => 
               <rect x="26" y="94" width="6" height="6" />
 
               {/* Data Blocks */}
-              <rect x="60" y="60" width="40" height="40" rx="4" fill="#005C53" />
+              <rect x="60" y="60" width="40" height="40" rx="4" fill="#E52E84" />
               <rect x="72" y="72" width="16" height="16" fill="#FFFFFF" rx="2" />
 
               <rect x="10" y="60" width="10" height="10" />
@@ -77,31 +77,23 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({ ticket, onClose }) => 
         </div>
 
         {/* Ticket Info */}
-        <div className="w-full bg-[#FAF9F5] border border-[#EAE7DF] rounded-2xl p-3 mb-4 text-center">
-          <div className="text-xs font-bold text-[#1A1A1A]">{ticket.movieTitle}</div>
-          <div className="text-[11px] text-[#7A7A7A] mt-0.5">
+        <div className="w-full bg-neutral-100 rounded-2xl p-3 mb-4 text-center">
+          <div className="text-xs font-bold text-neutral-900">{ticket.movieTitle}</div>
+          <div className="text-[11px] text-neutral-600 mt-0.5">
             {ticket.date} • {ticket.time}
           </div>
-          <div className="text-[11px] font-bold text-[#005C53] mt-0.5">
+          <div className="text-[11px] font-semibold text-pink-600 mt-0.5">
             {ticket.hall} • {ticket.seats}
           </div>
         </div>
 
-        {/* Buttons matching Screen 27 */}
-        <div className="w-full space-y-2">
-          <button
-            onClick={() => alert('Билет добавлен в Apple Wallet')}
-            className="w-full py-2.5 px-4 bg-[#1A1A1A] hover:bg-black text-white font-semibold rounded-2xl text-xs transition-colors cursor-pointer"
-          >
-            Добавить в Apple Wallet
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full py-2.5 px-4 bg-white border border-[#EAE7DF] text-[#1A1A1A] font-semibold rounded-2xl text-xs transition-colors cursor-pointer hover:border-[#7A7A7A]"
-          >
-            Закрыть
-          </button>
-        </div>
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="w-full py-3 px-4 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold rounded-2xl text-xs transition-colors cursor-pointer active:scale-98"
+        >
+          Закрыть
+        </button>
       </div>
     </div>
   );

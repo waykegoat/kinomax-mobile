@@ -33,7 +33,7 @@ export const App: React.FC = () => {
   // Cinema Movies State (persisted)
   const [movies, setMovies] = useState<Movie[]>(() => {
     try {
-      const saved = localStorage.getItem('kadr_movies');
+      const saved = localStorage.getItem('kinomax_movies');
       if (saved) return JSON.parse(saved);
     } catch {
       // ignore
@@ -43,7 +43,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('kadr_movies', JSON.stringify(movies));
+      localStorage.setItem('kinomax_movies', JSON.stringify(movies));
     } catch {
       // ignore
     }
@@ -52,7 +52,7 @@ export const App: React.FC = () => {
   // Cinema Halls State (persisted)
   const [halls, setHalls] = useState<Hall[]>(() => {
     try {
-      const saved = localStorage.getItem('kadr_halls');
+      const saved = localStorage.getItem('kinomax_halls');
       if (saved) return JSON.parse(saved);
     } catch {
       // ignore
@@ -62,7 +62,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('kadr_halls', JSON.stringify(halls));
+      localStorage.setItem('kinomax_halls', JSON.stringify(halls));
     } catch {
       // ignore
     }
@@ -71,7 +71,7 @@ export const App: React.FC = () => {
   // Purchase Statistics State (persisted)
   const [stats, setStats] = useState<PurchaseStats>(() => {
     try {
-      const saved = localStorage.getItem('kadr_stats');
+      const saved = localStorage.getItem('kinomax_stats');
       if (saved) return JSON.parse(saved);
     } catch {
       // ignore
@@ -81,7 +81,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('kadr_stats', JSON.stringify(stats));
+      localStorage.setItem('kinomax_stats', JSON.stringify(stats));
     } catch {
       // ignore
     }
@@ -90,7 +90,7 @@ export const App: React.FC = () => {
   // Admin Auth State (persisted)
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     try {
-      return localStorage.getItem('kadr_admin_auth') === 'true';
+      return localStorage.getItem('kinomax_admin_auth') === 'true';
     } catch {
       return false;
     }
@@ -99,7 +99,7 @@ export const App: React.FC = () => {
   const handleAdminLoginSuccess = () => {
     setIsAdminAuthenticated(true);
     try {
-      localStorage.setItem('kadr_admin_auth', 'true');
+      localStorage.setItem('kinomax_admin_auth', 'true');
     } catch {
       // ignore
     }
@@ -116,23 +116,23 @@ export const App: React.FC = () => {
 
   // Booking Flow State
   const [selectedMovie, setSelectedMovie] = useState<Movie>(movies[0] || MOVIES[0]);
-  const [selectedDate, setSelectedDate] = useState('27 окт.');
+  const [selectedDate, setSelectedDate] = useState('22 окт');
   const [selectedShowtime, setSelectedShowtime] = useState(
-    (movies[0] || MOVIES[0]).showtimes[1] || (movies[0] || MOVIES[0]).showtimes[0]
+    (movies[0] || MOVIES[0]).showtimes[0]
   );
-  const [selectedSeats, setSelectedSeats] = useState<string[]>(['3-4', '3-5']);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>(['5-4', '5-5']);
   const [bookingTotalPrice, setBookingTotalPrice] = useState(840);
 
   // User State
   const [user, setUser] = useState<{ name: string; email: string } | null>({
     name: 'Иван Петров',
-    email: 'ivan@example.com',
+    email: 'ivan@mail.ru',
   });
 
   // Tickets State (persisted in localStorage)
   const [tickets, setTickets] = useState<Ticket[]>(() => {
     try {
-      const saved = localStorage.getItem('kadr_tickets');
+      const saved = localStorage.getItem('kinomax_tickets');
       if (saved) return JSON.parse(saved);
     } catch {
       // ignore
@@ -142,7 +142,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('kadr_tickets', JSON.stringify(tickets));
+      localStorage.setItem('kinomax_tickets', JSON.stringify(tickets));
     } catch {
       // ignore
     }
@@ -154,14 +154,14 @@ export const App: React.FC = () => {
   // Handlers
   const handleSelectMovie = (movie: Movie) => {
     setSelectedMovie(movie);
-    setSelectedShowtime(movie.showtimes[1] || movie.showtimes[0]);
+    setSelectedShowtime(movie.showtimes[0]);
     setOverlayScreen('movie_detail');
   };
 
   const handleQuickShowtime = (movie: Movie, showtime: Movie['showtimes'][0]) => {
     setSelectedMovie(movie);
     setSelectedShowtime(showtime);
-    setSelectedDate('27 окт.');
+    setSelectedDate('22 окт');
     setOverlayScreen('seat_selection');
   };
 
@@ -268,15 +268,15 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0E1013] text-[#1A1A1A] flex flex-col items-center justify-center relative p-0 sm:p-4 select-none">
-      {/* Desktop Toolbar */}
-      <div className="hidden sm:flex items-center gap-2 mb-3 bg-[#1A1D22] border border-neutral-800 px-3.5 py-1.5 rounded-full text-xs text-neutral-300 z-50 shadow-md">
-        <span className="font-bold text-white">КАДР • Киномакс Владимир</span>
+    <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center relative p-0 sm:p-4 select-none">
+      {/* Desktop Toolbar to switch presentation or quick test Figma frames */}
+      <div className="hidden sm:flex items-center gap-2 mb-3 bg-[#18181C] border border-neutral-800 px-3.5 py-1.5 rounded-full text-xs text-neutral-400 z-50">
+        <span className="font-semibold text-white">КИНОМАКС • Мобильная версия</span>
         <span className="text-neutral-600">|</span>
         <button
           onClick={() => setFrameMode('device')}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-colors cursor-pointer ${
-            frameMode === 'device' ? 'bg-[#005C53] text-white font-bold' : 'hover:text-white'
+            frameMode === 'device' ? 'bg-[#E52E84] text-white font-bold' : 'hover:text-white'
           }`}
         >
           <Smartphone size={13} />
@@ -285,7 +285,7 @@ export const App: React.FC = () => {
         <button
           onClick={() => setFrameMode('fluid')}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-colors cursor-pointer ${
-            frameMode === 'fluid' ? 'bg-[#005C53] text-white font-bold' : 'hover:text-white'
+            frameMode === 'fluid' ? 'bg-[#E52E84] text-white font-bold' : 'hover:text-white'
           }`}
         >
           <Monitor size={13} />
@@ -293,7 +293,7 @@ export const App: React.FC = () => {
         </button>
       </div>
 
-      {/* Mobile Shell Container strictly bounded to phone frame */}
+      {/* Mobile Shell Container */}
       <div
         className={`mobile-device-container transition-all ${
           frameMode === 'fluid' ? '!max-w-md !border-0 !rounded-none !shadow-none' : ''
@@ -311,7 +311,6 @@ export const App: React.FC = () => {
               onOpenDrawer={() => setIsDrawerOpen(true)}
               onSelectMovie={handleSelectMovie}
               onQuickShowtime={handleQuickShowtime}
-              onGoAfisha={() => setCurrentTab('catalog')}
             />
           )}
 
@@ -320,11 +319,7 @@ export const App: React.FC = () => {
           )}
 
           {currentTab === 'catalog' && (
-            <CatalogScreen
-              movies={movies}
-              onSelectMovie={handleSelectMovie}
-              onGoSearch={() => setCurrentTab('search')}
-            />
+            <CatalogScreen movies={movies} onSelectMovie={handleSelectMovie} />
           )}
 
           {currentTab === 'tickets' && (
@@ -347,7 +342,7 @@ export const App: React.FC = () => {
 
           {/* Overlays / Sub-screens */}
           {overlayScreen === 'movie_detail' && (
-            <div className="absolute inset-0 z-40 bg-[#FAF9F5] flex flex-col">
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <MovieDetailScreen
                 movie={selectedMovie}
                 onBack={() => setOverlayScreen(null)}
@@ -357,7 +352,7 @@ export const App: React.FC = () => {
           )}
 
           {overlayScreen === 'seat_selection' && (
-            <div className="absolute inset-0 z-40 bg-[#FAF9F5] flex flex-col">
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <SeatSelectionScreen
                 movie={selectedMovie}
                 selectedDate={selectedDate}
@@ -370,7 +365,7 @@ export const App: React.FC = () => {
           )}
 
           {overlayScreen === 'payment' && (
-            <div className="absolute inset-0 z-40 bg-[#FAF9F5] flex flex-col">
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <PaymentScreen
                 movie={selectedMovie}
                 selectedDate={selectedDate}
@@ -392,7 +387,7 @@ export const App: React.FC = () => {
           )}
 
           {overlayScreen === 'auth' && (
-            <div className="absolute inset-0 z-40 bg-[#FAF9F5] flex flex-col">
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <AuthScreens
                 initialScreen="login"
                 onSuccess={(u) => {
@@ -406,7 +401,7 @@ export const App: React.FC = () => {
 
           {/* Admin Login Modal Overlay */}
           {overlayScreen === 'admin_login' && (
-            <div className="absolute inset-0 z-40 bg-[#0A1E22] flex flex-col">
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <AdminLogin
                 onSuccess={handleAdminLoginSuccess}
                 onBack={() => setOverlayScreen(null)}
@@ -416,7 +411,7 @@ export const App: React.FC = () => {
 
           {/* Admin Panel Overlay */}
           {overlayScreen === 'admin_panel' && (
-            <div className="absolute inset-0 z-40 bg-[#0A1E22] flex flex-col">
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <AdminPanel
                 movies={movies}
                 halls={halls}

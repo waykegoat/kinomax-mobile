@@ -43,12 +43,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0A1E22] text-white overflow-hidden animate-fade-in relative">
+    <div className="flex-1 flex flex-col bg-[#121214] text-white overflow-hidden animate-fade-in relative">
       {/* Top Admin Header */}
-      <div className="p-4 border-b border-[#1A383D] bg-[#0E282D] shrink-0 flex items-center justify-between shadow-md">
+      <div className="p-4 border-b border-neutral-800/80 bg-[#16161A] shrink-0 flex items-center justify-between shadow-md">
         <button
           onClick={onExit}
-          className="flex items-center gap-1.5 text-xs font-bold text-[#78C5BC] hover:text-white cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] cursor-pointer"
         >
           <ArrowLeft size={16} />
           <span>В зал</span>
@@ -56,17 +56,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         <div className="text-center">
           <div className="flex items-center justify-center gap-1.5 text-sm font-black text-white">
-            <Shield size={16} className="text-[#005C53]" />
+            <Shield size={16} className="text-[#E52E84]" />
             <span>Панель управления</span>
           </div>
-          <div className="text-[10px] text-[#A8D3CF] font-medium">
-            КИНОМАКС • Буревестник Владимир
+          <div className="text-[10px] text-neutral-400 font-medium">
+            Киномакс-Буревестник Владимир
           </div>
         </div>
 
         <button
           onClick={onExit}
-          className="text-[#A8D3CF] hover:text-white p-1 rounded-lg bg-[#143238] transition-colors cursor-pointer"
+          className="text-neutral-400 hover:text-white p-1 rounded-lg bg-neutral-800/60 transition-colors"
           title="Выйти из режима администратора"
         >
           <LogOut size={16} />
@@ -74,16 +74,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       </div>
 
       {/* Sub-Navigation Tabs */}
-      <div className="flex border-b border-[#1A383D] bg-[#0C2227] px-2 overflow-x-auto no-scrollbar shrink-0">
+      <div className="flex border-b border-neutral-800 bg-[#18181D] px-2 overflow-x-auto no-scrollbar shrink-0">
         <button
           onClick={() => setActiveTab('stats')}
           className={`flex items-center gap-1.5 py-3 px-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 cursor-pointer ${
             activeTab === 'stats'
-              ? 'border-[#005C53] text-white'
-              : 'border-transparent text-[#78C5BC]/60 hover:text-white'
+              ? 'border-[#E52E84] text-white'
+              : 'border-transparent text-neutral-400 hover:text-neutral-200'
           }`}
         >
-          <BarChart3 size={14} className={activeTab === 'stats' ? 'text-[#78C5BC]' : ''} />
+          <BarChart3 size={14} className={activeTab === 'stats' ? 'text-[#E52E84]' : ''} />
           <span>Статистика</span>
         </button>
 
@@ -91,11 +91,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           onClick={() => setActiveTab('movies')}
           className={`flex items-center gap-1.5 py-3 px-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 cursor-pointer ${
             activeTab === 'movies'
-              ? 'border-[#005C53] text-white'
-              : 'border-transparent text-[#78C5BC]/60 hover:text-white'
+              ? 'border-[#E52E84] text-white'
+              : 'border-transparent text-neutral-400 hover:text-neutral-200'
           }`}
         >
-          <Film size={14} className={activeTab === 'movies' ? 'text-[#78C5BC]' : ''} />
+          <Film size={14} className={activeTab === 'movies' ? 'text-[#E52E84]' : ''} />
           <span>Фильмы ({movies.length})</span>
         </button>
 
@@ -103,11 +103,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           onClick={() => setActiveTab('add_movie')}
           className={`flex items-center gap-1.5 py-3 px-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 cursor-pointer ${
             activeTab === 'add_movie'
-              ? 'border-[#005C53] text-white'
-              : 'border-transparent text-[#78C5BC]/60 hover:text-white'
+              ? 'border-[#E52E84] text-white'
+              : 'border-transparent text-neutral-400 hover:text-neutral-200'
           }`}
         >
-          <PlusCircle size={14} className={activeTab === 'add_movie' ? 'text-[#78C5BC]' : ''} />
+          <PlusCircle size={14} className={activeTab === 'add_movie' ? 'text-[#E52E84]' : ''} />
           <span>Добавить фильм</span>
         </button>
 
@@ -115,11 +115,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           onClick={() => setActiveTab('halls')}
           className={`flex items-center gap-1.5 py-3 px-3 text-xs font-bold whitespace-nowrap transition-all border-b-2 cursor-pointer ${
             activeTab === 'halls'
-              ? 'border-[#005C53] text-white'
-              : 'border-transparent text-[#78C5BC]/60 hover:text-white'
+              ? 'border-[#E52E84] text-white'
+              : 'border-transparent text-neutral-400 hover:text-neutral-200'
           }`}
         >
-          <Layers size={14} className={activeTab === 'halls' ? 'text-[#78C5BC]' : ''} />
+          <Layers size={14} className={activeTab === 'halls' ? 'text-[#E52E84]' : ''} />
           <span>Залы ({halls.length})</span>
         </button>
       </div>
@@ -140,6 +140,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         {activeTab === 'add_movie' && (
           <AdminAddMovie
             halls={halls}
+            existingMovies={movies}
             onAddMovie={handleAddMovie}
             onCancel={() => setActiveTab('movies')}
           />
