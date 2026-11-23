@@ -7,10 +7,14 @@ import { FilterModal } from './FilterModal';
 import type { FilterState } from './FilterModal';
 
 interface SearchScreenProps {
+  movies?: Movie[];
   onSelectMovie: (movie: Movie) => void;
 }
 
-export const SearchScreen: React.FC<SearchScreenProps> = ({ onSelectMovie }) => {
+export const SearchScreen: React.FC<SearchScreenProps> = ({
+  movies = MOVIES,
+  onSelectMovie,
+}) => {
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState<string[]>(SEARCH_HISTORY_ITEMS);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -25,10 +29,11 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onSelectMovie }) => 
     setHistory(history.filter((item) => item !== itemToRemove));
   };
 
-  const filteredMovies = MOVIES.filter((m) => {
-    const matchesQuery = m.title.toLowerCase().includes(query.toLowerCase()) ||
+  const filteredMovies = movies.filter((m) => {
+    const matchesQuery =
+      m.title.toLowerCase().includes(query.toLowerCase()) ||
       m.genre.toLowerCase().includes(query.toLowerCase());
-    
+
     if (filters.genre !== 'Все') {
       if (!m.genre.toLowerCase().includes(filters.genre.toLowerCase())) {
         return false;
@@ -36,7 +41,8 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onSelectMovie }) => 
     }
 
     if (filters.price === 'До 500 ₽' && m.priceFrom > 500) return false;
-    if (filters.price === '500 - 1 000 ₽' && (m.priceFrom < 500 || m.priceFrom > 1000)) return false;
+    if (filters.price === '500 - 1 000 ₽' && (m.priceFrom < 500 || m.priceFrom > 1000))
+      return false;
     if (filters.price === '1 000+ ₽' && m.priceFrom < 1000) return false;
 
     return matchesQuery;
@@ -48,18 +54,21 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onSelectMovie }) => 
       <div className="p-5 pb-3 border-b border-neutral-800/80 shrink-0">
         <h1 className="text-2xl font-black text-white tracking-tight mb-4">Поиск</h1>
 
-        <div className="flex items-center gap-2.5">
-          <div className="flex-1 flex items-center gap-2.5 px-3.5 py-3 bg-[#242428] rounded-2xl border border-neutral-800 focus-within:border-[#E52E84] transition-colors">
-            <Search size={18} className="text-neutral-400 shrink-0" />
+        <div className="flex items-center gap-3">
+          <div className="flex-1 relative flex items-center">
+            <Search size={18} className="absolute left-3.5 text-neutral-400" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Фильмы"
-              className="w-full bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none"
+              placeholder="Фильмы, персоны, кинотеатры"
+              className="w-full bg-[#1C1C20] border border-neutral-700/60 rounded-2xl py-3 pl-10 pr-10 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-[#E52E84] transition-colors"
             />
             {query && (
-              <button onClick={() => setQuery('')} className="text-neutral-400 hover:text-white">
+              <button
+                onClick={() => setQuery('')}
+                className="absolute right-3.5 text-neutral-400 hover:text-white"
+              >
                 <X size={16} />
               </button>
             )}
@@ -67,36 +76,34 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onSelectMovie }) => 
 
           <button
             onClick={() => setIsFilterOpen(true)}
-            className="w-11 h-11 rounded-2xl bg-[#242428] hover:bg-[#2c2c32] border border-neutral-800 text-neutral-300 hover:text-white flex items-center justify-center transition-colors shrink-0"
+            className="w-11 h-11 rounded-2xl bg-[#1C1C20] border border-neutral-700/60 flex items-center justify-center text-neutral-300 hover:text-white hover:border-[#E52E84] transition-colors shrink-0 cursor-pointer"
           >
             <SlidersHorizontal size={18} />
           </button>
         </div>
       </div>
 
-      <div className="p-5 space-y-6 pb-12">
-        {/* Search History Chips matching Figma Screen 4 */}
-        {history.length > 0 && !query && (
+      {/* Main Content Area */}
+      <div className="p-5 space-y-5 flex-1">
+        {/* Search History */}
+        {!query && history.length > 0 && (
           <div>
-            <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3">
-              История поиска
-            </h3>
-            <div className="space-y-2">
+            <div className="text-xs font-bold text-neutral-400 mb-3 uppercase tracking-wider">
+              Вы недавно искали
+            </div>
+            <div className="flex flex-wrap gap-2">
               {history.map((item, idx) => (
                 <div
                   key={idx}
                   onClick={() => setQuery(item)}
-                  className="flex items-center justify-between px-4 py-2.5 bg-[#1C1C20] hover:bg-[#25252A] rounded-xl border border-neutral-800/80 cursor-pointer transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#1C1C20] border border-neutral-800 text-xs text-neutral-300 hover:text-white hover:border-neutral-700 cursor-pointer transition-colors"
                 >
-                  <div className="flex items-center gap-2 text-xs text-neutral-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#E52E84]" />
-                    <span>{item}</span>
-                  </div>
+                  <span>{item}</span>
                   <button
                     onClick={(e) => removeHistoryItem(item, e)}
                     className="text-neutral-500 hover:text-neutral-300 p-0.5"
                   >
-                    <X size={14} />
+                    <X size={12} />
                   </button>
                 </div>
               ))}
@@ -104,35 +111,44 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onSelectMovie }) => 
           </div>
         )}
 
-        {/* Results List */}
+        {/* Results */}
         <div>
-          <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3">
-            Результаты
-          </h3>
+          <div className="text-xs font-bold text-neutral-400 mb-3 uppercase tracking-wider">
+            {query ? `Найдено: ${filteredMovies.length}` : 'Рекомендуем посмотреть'}
+          </div>
+
           {filteredMovies.length === 0 ? (
-            <div className="text-center py-10 text-neutral-500 text-xs">
+            <div className="text-center py-12 text-neutral-500 text-xs">
               Ничего не найдено по вашему запросу
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 pb-12">
               {filteredMovies.map((movie) => (
                 <div
                   key={movie.id}
                   onClick={() => onSelectMovie(movie)}
                   className="flex gap-3.5 p-3 bg-[#1A1A1E] border border-neutral-800/80 rounded-2xl hover:border-neutral-700 transition-all cursor-pointer shadow-md group"
                 >
-                  <div className="w-16 h-22 rounded-xl overflow-hidden shrink-0 shadow">
-                    <MoviePoster movieId={movie.id} className="w-full h-full" />
+                  <div className="w-16 h-22 rounded-xl overflow-hidden shrink-0 shadow-md">
+                    <MoviePoster
+                      movieId={movie.id}
+                      posterImage={movie.posterImage}
+                      title={movie.title}
+                      className="w-full h-full"
+                    />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center">
-                    <h4 className="text-sm font-bold text-white group-hover:text-[#E52E84] transition-colors leading-tight">
+                    <h3 className="text-sm font-black text-white group-hover:text-[#E52E84] transition-colors leading-tight">
                       {movie.title}
-                    </h4>
+                    </h3>
                     <div className="text-[11px] text-neutral-400 mt-1">
-                      {movie.dates[0]} • {movie.genre}
+                      {movie.age} | {movie.duration}
                     </div>
-                    <div className="text-xs font-bold text-[#E52E84] mt-1.5">
+                    <div className="text-[11px] text-neutral-400 mt-0.5">
+                      {movie.genre}
+                    </div>
+                    <div className="text-xs font-bold text-[#E52E84] mt-2">
                       от {movie.priceFrom} ₽
                     </div>
                   </div>
@@ -143,12 +159,12 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({ onSelectMovie }) => 
         </div>
       </div>
 
-      {/* Filter Modal */}
+      {/* Filter Bottom Sheet Modal */}
       <FilterModal
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         initialFilters={filters}
-        onApply={(f) => setFilters(f)}
+        onApply={(f: FilterState) => setFilters(f)}
       />
     </div>
   );

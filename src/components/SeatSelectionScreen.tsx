@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import type { Movie } from '../data/mockData';
+import type { Movie, Hall } from '../data/mockData';
 
 interface SeatSelectionScreenProps {
   movie: Movie;
@@ -11,6 +11,7 @@ interface SeatSelectionScreenProps {
     price: number;
     hall: string;
   };
+  halls?: Hall[];
   onBack: () => void;
   onProceedToPayment: (selectedSeats: string[], totalPrice: number) => void;
 }
@@ -19,19 +20,26 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
   movie,
   selectedDate,
   selectedShowtime,
+  halls,
   onBack,
   onProceedToPayment,
 }) => {
   // Pre-selected seats matching Figma node 2047-2 flow (Row 5, seats 4 and 5)
   const [selectedSeats, setSelectedSeats] = useState<string[]>(['5-4', '5-5']);
 
-  // Occupied seats matching Figma
+  // Occupied seats
   const occupiedSeats = new Set([
     '2-3', '2-4', '3-5', '3-6', '3-7', '4-2', '4-3', '4-8', '4-9', '6-1', '6-2', '6-9', '6-10'
   ]);
 
-  const rows = [1, 2, 3, 4, 5, 6];
-  const seatsPerRow = 10;
+  // Find active hall from passed halls or use default
+  const activeHall = halls?.find(
+    (h) => h.name === selectedShowtime.hall || h.id === movie.hallId
+  ) || halls?.[0];
+
+  const rowCount = activeHall?.rows || 6;
+  const seatsPerRow = activeHall?.seatsPerRow || 10;
+  const rows = Array.from({ length: rowCount }, (_, i) => i + 1);
 
   const toggleSeat = (row: number, seat: number) => {
     const seatId = `${row}-${seat}`;
@@ -53,7 +61,7 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
       <div className="p-4 border-b border-neutral-800/80 flex items-center justify-between shrink-0">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] transition-colors cursor-pointer"
         >
           <ArrowLeft size={16} />
           <span>Назад</span>
@@ -100,10 +108,10 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
         </div>
 
         {/* Seats Grid */}
-        <div className="w-full max-w-[340px] space-y-2.5 my-auto">
+        <div className="w-full max-w-[360px] overflow-x-auto space-y-2.5 my-auto py-2">
           {rows.map((row) => (
-            <div key={row} className="flex items-center justify-between gap-1.5">
-              <span className="text-[10px] font-bold text-neutral-400 w-3.5 text-center">
+            <div key={row} className="flex items-center justify-between gap-1.5 min-w-fit mx-auto">
+              <span className="text-[10px] font-bold text-neutral-400 w-3.5 text-center select-none">
                 {row}
               </span>
               <div className="flex items-center justify-center gap-1.5 flex-1">
@@ -119,7 +127,7 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
                       onClick={() => toggleSeat(row, seatNum)}
                       disabled={isOccupied}
                       title={`Ряд ${row}, Место ${seatNum}`}
-                      className={`w-5 h-5 rounded-[4px] text-[8px] font-medium transition-all flex items-center justify-center ${
+                      className={`w-5 h-5 rounded-[4px] text-[8px] font-medium transition-all flex items-center justify-center cursor-pointer ${
                         isSelected
                           ? 'bg-[#E52E84] text-white shadow-md shadow-pink-900/50 scale-110 z-10'
                           : isOccupied
@@ -132,7 +140,7 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
                   );
                 })}
               </div>
-              <span className="text-[10px] font-bold text-neutral-400 w-3.5 text-center">
+              <span className="text-[10px] font-bold text-neutral-400 w-3.5 text-center select-none">
                 {row}
               </span>
             </div>

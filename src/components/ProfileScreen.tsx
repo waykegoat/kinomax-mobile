@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
-import { User, Ticket as TicketIcon, CreditCard, LogOut, ChevronRight, ArrowLeft, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import {
+  User,
+  Ticket as TicketIcon,
+  CreditCard,
+  LogOut,
+  ChevronRight,
+  ArrowLeft,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  Shield,
+} from 'lucide-react';
 
 interface ProfileScreenProps {
   user: { name: string; email: string } | null;
   onOpenLogin: () => void;
   onLogout: () => void;
   onNavigateTickets: () => void;
+  onOpenAdmin: () => void;
 }
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = ({
@@ -13,6 +25,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   onOpenLogin,
   onLogout,
   onNavigateTickets,
+  onOpenAdmin,
 }) => {
   const [subView, setSubView] = useState<'main' | 'payment_methods'>('main');
   const [savedCards, setSavedCards] = useState([
@@ -35,6 +48,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         >
           Войти или зарегистрироваться
         </button>
+
+        <button
+          onClick={onOpenAdmin}
+          className="mt-6 text-xs text-neutral-500 hover:text-[#E52E84] flex items-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <Shield size={14} />
+          <span>Вход для администратора</span>
+        </button>
       </div>
     );
   }
@@ -46,7 +67,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <div className="flex items-center justify-between pb-4 border-b border-neutral-800 mb-6">
           <button
             onClick={() => setSubView('main')}
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92]"
+            className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] cursor-pointer"
           >
             <ArrowLeft size={16} />
             <span>Назад</span>
@@ -72,7 +93,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
               </div>
               <button
                 onClick={() => setSavedCards(savedCards.filter((c) => c.id !== card.id))}
-                className="text-neutral-500 hover:text-red-400 p-1 transition-colors"
+                className="text-neutral-500 hover:text-red-400 p-1 transition-colors cursor-pointer"
               >
                 <Trash2 size={16} />
               </button>
@@ -81,7 +102,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
           <button
             onClick={() => alert('Форма добавления новой банковской карты')}
-            className="w-full flex items-center gap-3 p-4 bg-[#1C1C1F] border border-dashed border-neutral-700 rounded-2xl text-xs font-medium text-neutral-300 hover:text-white hover:border-neutral-500 transition-colors"
+            className="w-full flex items-center gap-3 p-4 bg-[#1C1C1F] border border-dashed border-neutral-700 rounded-2xl text-xs font-medium text-neutral-300 hover:text-white hover:border-neutral-500 transition-colors cursor-pointer"
           >
             <div className="w-7 h-7 rounded-full bg-[#26262A] flex items-center justify-center text-white">
               <Plus size={16} />
@@ -121,7 +142,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       <div className="p-5 space-y-2">
         <button
           onClick={onNavigateTickets}
-          className="w-full flex items-center justify-between p-4 bg-[#1C1C20] hover:bg-[#25252A] rounded-2xl border border-neutral-800/80 transition-colors text-left"
+          className="w-full flex items-center justify-between p-4 bg-[#1C1C20] hover:bg-[#25252A] rounded-2xl border border-neutral-800/80 transition-colors text-left cursor-pointer"
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
@@ -134,7 +155,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 
         <button
           onClick={() => setSubView('payment_methods')}
-          className="w-full flex items-center justify-between p-4 bg-[#1C1C20] hover:bg-[#25252A] rounded-2xl border border-neutral-800/80 transition-colors text-left"
+          className="w-full flex items-center justify-between p-4 bg-[#1C1C20] hover:bg-[#25252A] rounded-2xl border border-neutral-800/80 transition-colors text-left cursor-pointer"
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-pink-500/15 text-[#E52E84] flex items-center justify-center">
@@ -145,9 +166,29 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <ChevronRight size={18} className="text-neutral-500" />
         </button>
 
+        {/* Admin Panel button */}
+        <button
+          onClick={onOpenAdmin}
+          className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-pink-950/50 via-purple-950/30 to-[#1C1C20] hover:from-pink-950/70 rounded-2xl border border-pink-500/30 transition-colors text-left cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#E52E84]/20 text-[#E52E84] flex items-center justify-center">
+              <Shield size={18} />
+            </div>
+            <div>
+              <div className="text-sm font-bold text-white flex items-center gap-1.5">
+                <span>Панель администратора</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#E52E84] text-white">КИНОМАКС</span>
+              </div>
+              <div className="text-[11px] text-neutral-400">Управление фильмами, залами, статистика</div>
+            </div>
+          </div>
+          <ChevronRight size={18} className="text-neutral-500" />
+        </button>
+
         <button
           onClick={onLogout}
-          className="w-full flex items-center justify-between p-4 bg-[#1C1C20] hover:bg-[#25252A] rounded-2xl border border-neutral-800/80 transition-colors text-left text-red-400 mt-4"
+          className="w-full flex items-center justify-between p-4 bg-[#1C1C20] hover:bg-[#25252A] rounded-2xl border border-neutral-800/80 transition-colors text-left text-red-400 mt-4 cursor-pointer"
         >
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-red-500/15 text-red-400 flex items-center justify-center">

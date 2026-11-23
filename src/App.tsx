@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { MOVIES, INITIAL_TICKETS } from './data/mockData';
-import type { Movie, Ticket } from './data/mockData';
+import {
+  MOVIES,
+  INITIAL_TICKETS,
+  INITIAL_HALLS,
+  INITIAL_STATS,
+} from './data/mockData';
+import type { Movie, Ticket, Hall, PurchaseStats } from './data/mockData';
 import { MobileStatusBar } from './components/MobileStatusBar';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/HomeScreen';
@@ -13,20 +18,108 @@ import { MovieDetailScreen } from './components/MovieDetailScreen';
 import { SeatSelectionScreen } from './components/SeatSelectionScreen';
 import { PaymentScreen } from './components/PaymentScreen';
 import { AuthScreens } from './components/AuthScreens';
+import { AdminLogin } from './components/Admin/AdminLogin';
+import { AdminPanel } from './components/Admin/AdminPanel';
 import { Smartphone, Monitor } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Navigation State
   const [currentTab, setCurrentTab] = useState<'home' | 'search' | 'catalog' | 'tickets' | 'profile'>('home');
   const [overlayScreen, setOverlayScreen] = useState<
-    null | 'movie_detail' | 'seat_selection' | 'payment' | 'auth'
+    null | 'movie_detail' | 'seat_selection' | 'payment' | 'auth' | 'admin_login' | 'admin_panel'
   >(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
+  // Cinema Movies State (persisted)
+  const [movies, setMovies] = useState<Movie[]>(() => {
+    try {
+      const saved = localStorage.getItem('kinomax_movies');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return MOVIES;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kinomax_movies', JSON.stringify(movies));
+    } catch {
+      // ignore
+    }
+  }, [movies]);
+
+  // Cinema Halls State (persisted)
+  const [halls, setHalls] = useState<Hall[]>(() => {
+    try {
+      const saved = localStorage.getItem('kinomax_halls');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return INITIAL_HALLS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kinomax_halls', JSON.stringify(halls));
+    } catch {
+      // ignore
+    }
+  }, [halls]);
+
+  // Purchase Statistics State (persisted)
+  const [stats, setStats] = useState<PurchaseStats>(() => {
+    try {
+      const saved = localStorage.getItem('kinomax_stats');
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return INITIAL_STATS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('kinomax_stats', JSON.stringify(stats));
+    } catch {
+      // ignore
+    }
+  }, [stats]);
+
+  // Admin Auth State (persisted)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('kinomax_admin_auth') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleAdminLoginSuccess = () => {
+    setIsAdminAuthenticated(true);
+    try {
+      localStorage.setItem('kinomax_admin_auth', 'true');
+    } catch {
+      // ignore
+    }
+    setOverlayScreen('admin_panel');
+  };
+
+  const handleOpenAdmin = () => {
+    if (isAdminAuthenticated) {
+      setOverlayScreen('admin_panel');
+    } else {
+      setOverlayScreen('admin_login');
+    }
+  };
+
   // Booking Flow State
-  const [selectedMovie, setSelectedMovie] = useState<Movie>(MOVIES[0]);
+  const [selectedMovie, setSelectedMovie] = useState<Movie>(movies[0] || MOVIES[0]);
   const [selectedDate, setSelectedDate] = useState('22 окт');
-  const [selectedShowtime, setSelectedShowtime] = useState(MOVIES[0].showtimes[1]); // 12:40
+  const [selectedShowtime, setSelectedShowtime] = useState(
+    (movies[0] || MOVIES[0]).showtimes[0]
+  );
   const [selectedSeats, setSelectedSeats] = useState<string[]>(['5-4', '5-5']);
   const [bookingTotalPrice, setBookingTotalPrice] = useState(840);
 
@@ -86,10 +179,87 @@ export const App: React.FC = () => {
 
   const handlePaymentSuccess = (newTicket: Ticket) => {
     setTickets([newTicket, ...tickets]);
+
+    // Update real-time purchase statistics
+    setStats((prev) => {
+      const currentMovieStat = prev.movieStats[newTicket.movieId] || {
+        movieTitle: newTicket.movieTitle,
+        soldCount: 0,
+        revenue: 0,
+        refundCount: 0,
+      };
+
+      const seatsCount = selectedSeats.length || 1;
+
+      return {
+        ...prev,
+        totalSold: prev.totalSold + seatsCount,
+        totalWatched: prev.totalWatched + seatsCount,
+        totalRevenue: prev.totalRevenue + newTicket.price,
+        movieStats: {
+          ...prev.movieStats,
+          [newTicket.movieId]: {
+            ...currentMovieStat,
+            soldCount: currentMovieStat.soldCount + seatsCount,
+            revenue: currentMovieStat.revenue + newTicket.price,
+          },
+        },
+        recentTransactions: [
+          {
+            id: `tx-${Date.now()}`,
+            movieTitle: newTicket.movieTitle,
+            type: 'purchase',
+            amount: newTicket.price,
+            seats: newTicket.seats,
+            date: 'Сегодня',
+            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+          },
+          ...prev.recentTransactions,
+        ],
+      };
+    });
   };
 
   const handleRefundTicket = (ticketId: string) => {
+    const refunded = tickets.find((t) => t.id === ticketId);
     setTickets(tickets.filter((t) => t.id !== ticketId));
+
+    if (refunded) {
+      // Update real-time refund statistics
+      setStats((prev) => {
+        const currentMovieStat = prev.movieStats[refunded.movieId] || {
+          movieTitle: refunded.movieTitle,
+          soldCount: 0,
+          revenue: 0,
+          refundCount: 0,
+        };
+
+        return {
+          ...prev,
+          totalRefunded: prev.totalRefunded + 1,
+          refundedRevenue: prev.refundedRevenue + refunded.price,
+          movieStats: {
+            ...prev.movieStats,
+            [refunded.movieId]: {
+              ...currentMovieStat,
+              refundCount: currentMovieStat.refundCount + 1,
+            },
+          },
+          recentTransactions: [
+            {
+              id: `tx-ref-${Date.now()}`,
+              movieTitle: refunded.movieTitle,
+              type: 'refund',
+              amount: refunded.price,
+              seats: refunded.seats,
+              date: 'Сегодня',
+              time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            },
+            ...prev.recentTransactions,
+          ],
+        };
+      });
+    }
   };
 
   const handleTabChange = (tabId: string) => {
@@ -105,7 +275,7 @@ export const App: React.FC = () => {
         <span className="text-neutral-600">|</span>
         <button
           onClick={() => setFrameMode('device')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-colors ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-colors cursor-pointer ${
             frameMode === 'device' ? 'bg-[#E52E84] text-white font-bold' : 'hover:text-white'
           }`}
         >
@@ -114,7 +284,7 @@ export const App: React.FC = () => {
         </button>
         <button
           onClick={() => setFrameMode('fluid')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-colors ${
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full transition-colors cursor-pointer ${
             frameMode === 'fluid' ? 'bg-[#E52E84] text-white font-bold' : 'hover:text-white'
           }`}
         >
@@ -137,6 +307,7 @@ export const App: React.FC = () => {
           {/* Main Tab Screen */}
           {currentTab === 'home' && (
             <HomeScreen
+              movies={movies}
               onOpenDrawer={() => setIsDrawerOpen(true)}
               onSelectMovie={handleSelectMovie}
               onQuickShowtime={handleQuickShowtime}
@@ -144,11 +315,11 @@ export const App: React.FC = () => {
           )}
 
           {currentTab === 'search' && (
-            <SearchScreen onSelectMovie={handleSelectMovie} />
+            <SearchScreen movies={movies} onSelectMovie={handleSelectMovie} />
           )}
 
           {currentTab === 'catalog' && (
-            <CatalogScreen onSelectMovie={handleSelectMovie} />
+            <CatalogScreen movies={movies} onSelectMovie={handleSelectMovie} />
           )}
 
           {currentTab === 'tickets' && (
@@ -165,6 +336,7 @@ export const App: React.FC = () => {
               onOpenLogin={() => setOverlayScreen('auth')}
               onLogout={() => setUser(null)}
               onNavigateTickets={() => setCurrentTab('tickets')}
+              onOpenAdmin={handleOpenAdmin}
             />
           )}
 
@@ -185,6 +357,7 @@ export const App: React.FC = () => {
                 movie={selectedMovie}
                 selectedDate={selectedDate}
                 selectedShowtime={selectedShowtime}
+                halls={halls}
                 onBack={() => setOverlayScreen('movie_detail')}
                 onProceedToPayment={handleProceedToPayment}
               />
@@ -225,9 +398,33 @@ export const App: React.FC = () => {
               />
             </div>
           )}
+
+          {/* Admin Login Modal Overlay */}
+          {overlayScreen === 'admin_login' && (
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
+              <AdminLogin
+                onSuccess={handleAdminLoginSuccess}
+                onBack={() => setOverlayScreen(null)}
+              />
+            </div>
+          )}
+
+          {/* Admin Panel Overlay */}
+          {overlayScreen === 'admin_panel' && (
+            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
+              <AdminPanel
+                movies={movies}
+                halls={halls}
+                stats={stats}
+                onUpdateMovies={(newM) => setMovies(newM)}
+                onUpdateHalls={(newH) => setHalls(newH)}
+                onExit={() => setOverlayScreen(null)}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Side Drawer Menu */}
+        {/* Side Drawer Menu - strictly contained inside phone container */}
         <SideDrawer
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
@@ -235,6 +432,7 @@ export const App: React.FC = () => {
             setOverlayScreen(null);
             setCurrentTab(tab as any);
           }}
+          onOpenAdmin={handleOpenAdmin}
         />
 
         {/* Bottom Tab Bar */}

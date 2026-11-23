@@ -61,7 +61,12 @@ export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
         {/* Hero Poster Banner */}
         <div className="p-5 flex gap-4">
           <div className="w-28 h-40 shrink-0 shadow-xl rounded-2xl overflow-hidden border border-neutral-700/40">
-            <MoviePoster movieId={movie.id} className="w-full h-full" />
+            <MoviePoster
+              movieId={movie.id}
+              posterImage={movie.posterImage}
+              title={movie.title}
+              className="w-full h-full"
+            />
           </div>
 
           <div className="flex-1 flex flex-col justify-center">

@@ -1,16 +1,31 @@
 import React from 'react';
-import { X, MapPin, User, Ticket as TicketIcon, Film, Sparkles, Calendar, Baby, Palette, Award, Gift } from 'lucide-react';
+import {
+  X,
+  MapPin,
+  User,
+  Ticket as TicketIcon,
+  Film,
+  Sparkles,
+  Calendar,
+  Baby,
+  Palette,
+  Award,
+  Gift,
+  Shield,
+} from 'lucide-react';
 
 interface SideDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (tab: string) => void;
+  onOpenAdmin: () => void;
 }
 
 export const SideDrawer: React.FC<SideDrawerProps> = ({
   isOpen,
   onClose,
   onNavigate,
+  onOpenAdmin,
 }) => {
   if (!isOpen) return null;
 
@@ -28,7 +43,7 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
   return (
     <div className="absolute inset-0 z-50 flex overflow-hidden">
       {/* Dark backdrop strictly confined inside phone screen */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity animate-fade-in"
         onClick={onClose}
       />
@@ -78,6 +93,26 @@ export const SideDrawer: React.FC<SideDrawerProps> = ({
               <TicketIcon size={15} />
             </div>
             <span className="text-xs font-semibold">Мои билеты</span>
+          </button>
+
+          {/* Admin Panel Quick Access */}
+          <button
+            onClick={() => {
+              onOpenAdmin();
+              onClose();
+            }}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl bg-gradient-to-r from-pink-950/50 via-purple-950/40 to-neutral-900 border border-pink-500/30 text-pink-200 hover:border-[#E52E84] text-left transition-colors cursor-pointer mt-1"
+          >
+            <div className="w-7 h-7 rounded-full bg-[#E52E84]/20 text-[#E52E84] flex items-center justify-center shrink-0">
+              <Shield size={14} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-bold text-white flex items-center justify-between">
+                <span>Панель админа</span>
+                <span className="text-[9px] px-1.5 py-0.2 rounded bg-[#E52E84] text-white">Вход</span>
+              </div>
+              <div className="text-[10px] text-neutral-400 truncate">Репертуар, залы, продажи</div>
+            </div>
           </button>
         </div>
 
