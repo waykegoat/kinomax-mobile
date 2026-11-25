@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, CreditCard, Plus, Check, Trash2, Tag, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, CreditCard, Plus, Check, Trash2, Tag, AlertCircle, Award, Lock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import type { Movie, Ticket, SavedCard, UserProfile } from '../data/mockData';
 import {
@@ -29,6 +29,7 @@ interface PaymentScreenProps {
   savedCards: SavedCard[];
   onAddCard: (card: SavedCard) => void;
   onDeleteCard: (id: string) => void;
+  onOpenLogin?: () => void;
   onBack: () => void;
   onSuccess: (newTicket: Ticket) => void;
   onGoHome: () => void;
@@ -45,6 +46,7 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
   savedCards,
   onAddCard,
   onDeleteCard,
+  onOpenLogin,
   onBack,
   onSuccess,
   onGoHome,
@@ -57,8 +59,15 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
   const [isDone, setIsDone] = useState(false);
 
   // Contact details for e-ticket receipt
-  const [email, setEmail] = useState(user?.email || 'ivan@mail.ru');
-  const [phone, setPhone] = useState(user?.phone || '+7 (900) 123-45-67');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
+
+  useEffect(() => {
+    if (user) {
+      if (!email) setEmail(user.email || '');
+      if (!phone) setPhone(user.phone || '');
+    }
+  }, [user]);
 
   // New card form state
   const [cardNumber, setCardNumber] = useState('');
@@ -71,10 +80,30 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
   const [discountPercent, setDiscountPercent] = useState(0);
   const [promoFeedback, setPromoFeedback] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
+  // Auth-only Bonus spending state
+  const userBonuses = user ? (user.bonuses ?? 0) : 0;
+  const priceAfterPromo = Math.max(1, Math.round(totalPrice * (1 - discountPercent / 100)));
+  const maxSpendableBonuses = user ? Math.min(userBonuses, Math.floor(priceAfterPromo * 0.5)) : 0;
+  const [useBonuses, setUseBonuses] = useState(false);
+  const [bonusesToSpend, setBonusesToSpend] = useState<number>(maxSpendableBonuses);
+
+  // If user logs in or promo changes, sync bounds safely
+  useEffect(() => {
+    if (!user) {
+      setUseBonuses(false);
+      setBonusesToSpend(0);
+    } else if (bonusesToSpend > maxSpendableBonuses) {
+      setBonusesToSpend(maxSpendableBonuses);
+    }
+  }, [user, maxSpendableBonuses]);
+
   // Errors
   const [errors, setErrors] = useState<Record<string, string | null>>({});
 
-  const finalPrice = Math.max(1, Math.round(totalPrice * (1 - discountPercent / 100)));
+  const effectiveBonusesUsed =
+    user && useBonuses ? Math.min(maxSpendableBonuses, Math.max(0, isNaN(bonusesToSpend) ? 0 : bonusesToSpend)) : 0;
+  const finalPrice = Math.max(1, priceAfterPromo - effectiveBonusesUsed);
+  const bonusesEarned = user ? Math.round(finalPrice * 0.05) : 0;
 
   const formattedSeats = selectedSeats
     .map((s) => {
@@ -121,6 +150,14 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
       if (cvvErr) nextErrors.cardCvv = cvvErr;
     }
 
+    if (user && useBonuses) {
+      if (isNaN(bonusesToSpend) || bonusesToSpend < 0) {
+        nextErrors.bonuses = 'Укажите положительное число бонусов';
+      } else if (bonusesToSpend > maxSpendableBonuses) {
+        nextErrors.bonuses = `Максимум можно списать ${maxSpendableBonuses} бонусов (до 50% заказа)`;
+      }
+    }
+
     if (Object.values(nextErrors).some(Boolean)) {
       setErrors(nextErrors);
       return;
@@ -162,6 +199,8 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
       seats: formattedSeats,
       rawSeats: selectedSeats,
       price: finalPrice,
+      bonusesUsed: effectiveBonusesUsed,
+      bonusesEarned,
       qrCode: `KM-${Date.now().toString().slice(-6)}`,
       bgGradient: 'from-[#5e6bc4] to-[#454c9c]',
     };
@@ -180,10 +219,20 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
         <h1 className="text-3xl font-extrabold text-white mb-2 tracking-tight animate-slide-up">
           Готово!
         </h1>
-        <p className="text-sm text-neutral-400 max-w-[290px] mb-8 leading-relaxed animate-slide-up">
+        <p className="text-sm text-neutral-400 max-w-[290px] mb-4 leading-relaxed animate-slide-up">
           Билет успешно приобретён на сумму <strong className="text-white">{finalPrice} ₽</strong>. Чек и QR-код отправлены на{' '}
           <strong className="text-[#E52E84]">{email.trim()}</strong>.
         </p>
+
+        {user && (effectiveBonusesUsed > 0 || bonusesEarned > 0) && (
+          <div className="mb-6 px-4 py-2.5 rounded-2xl bg-[#1D1620] border border-[#E52E84]/40 text-xs text-pink-200 flex items-center gap-2">
+            <Award size={16} className="text-[#E52E84] shrink-0" />
+            <span>
+              {effectiveBonusesUsed > 0 && `Списано −${effectiveBonusesUsed} • `}
+              Начислено +{bonusesEarned} бонусов
+            </span>
+          </div>
+        )}
 
         <div className="w-full max-w-[320px] space-y-3">
           <button
@@ -523,6 +572,117 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
           )}
         </div>
 
+        {/* Auth-Only Loyalty Bonus Card */}
+        {!user ? (
+          <div className="bg-[#1A1A1E] border border-neutral-800 rounded-2xl p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-neutral-300">
+                <Lock size={14} className="text-neutral-500" />
+                <span>Бонусы Киномакс</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-400">
+                Только для авторизованных
+              </span>
+            </div>
+            <p className="text-[11px] text-neutral-400 leading-relaxed">
+              Войдите в аккаунт, чтобы списывать до 50% стоимости билетов и копить кэшбэк 5% бонусами.
+            </p>
+            {onOpenLogin && (
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="w-full py-2.5 bg-[#26262C] hover:bg-[#32323A] text-white border border-[#E52E84]/40 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+              >
+                Войти и применить бонусы
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="bg-[#1A1A1E] border border-[#E52E84]/30 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-white">
+                <Award size={15} className="text-[#E52E84]" />
+                <span>Бонусы Киномакс</span>
+              </div>
+              <span className="text-xs font-black text-[#E52E84]">{userBonuses} Б</span>
+            </div>
+
+            {userBonuses <= 0 || maxSpendableBonuses <= 0 ? (
+              <p className="text-[11px] text-neutral-400">
+                На балансе 0 доступных бонусов для списания. За этот заказ начислится{' '}
+                <strong className="text-emerald-400">+{bonusesEarned} бонусов</strong>.
+              </p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-neutral-200 font-medium">
+                      Списать бонусы (до {maxSpendableBonuses} ₽)
+                    </div>
+                    <div className="text-[10px] text-neutral-500">1 бонус = 1 ₽ · до 50% заказа</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !useBonuses;
+                      setUseBonuses(next);
+                      if (next && (!bonusesToSpend || bonusesToSpend > maxSpendableBonuses)) {
+                        setBonusesToSpend(maxSpendableBonuses);
+                      }
+                      if (errors.bonuses) setErrors({ ...errors, bonuses: null });
+                    }}
+                    className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer ${
+                      useBonuses ? 'bg-[#E52E84]' : 'bg-neutral-700'
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+                        useBonuses ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                {useBonuses && (
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min={0}
+                        max={maxSpendableBonuses}
+                        value={bonusesToSpend === 0 ? '' : bonusesToSpend}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+                          setBonusesToSpend(isNaN(val) ? 0 : val);
+                          if (errors.bonuses) setErrors({ ...errors, bonuses: null });
+                        }}
+                        className={`flex-1 bg-[#121214] border rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none ${
+                          errors.bonuses ? 'border-red-500' : 'border-neutral-700 focus:border-[#E52E84]'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBonusesToSpend(maxSpendableBonuses);
+                          if (errors.bonuses) setErrors({ ...errors, bonuses: null });
+                        }}
+                        className="px-3 py-2 bg-[#291724] border border-[#E52E84]/40 text-pink-200 rounded-xl text-[11px] font-bold cursor-pointer"
+                      >
+                        Макс. ({maxSpendableBonuses})
+                      </button>
+                    </div>
+                    {errors.bonuses && <p className="text-[10px] text-red-400">{errors.bonuses}</p>}
+                  </div>
+                )}
+
+                <div className="text-[10px] text-emerald-400 font-medium">
+                  Кэшбэк за этот заказ: +{bonusesEarned} бонусов
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {errors.method && (
           <div className="p-3 bg-red-950/70 border border-red-500/50 rounded-2xl text-xs text-red-200 flex items-center gap-2">
             <AlertCircle size={15} className="text-red-400 shrink-0" />
@@ -552,7 +712,13 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
           {discountPercent > 0 && (
             <div className="flex justify-between text-emerald-400">
               <span>Скидка по промокоду ({discountPercent}%):</span>
-              <span>−{totalPrice - finalPrice} ₽</span>
+              <span>−{totalPrice - priceAfterPromo} ₽</span>
+            </div>
+          )}
+          {effectiveBonusesUsed > 0 && (
+            <div className="flex justify-between text-[#E52E84]">
+              <span>Списано бонусов:</span>
+              <span>−{effectiveBonusesUsed} ₽</span>
             </div>
           )}
           <div className="flex justify-between text-neutral-300 font-bold pt-2 border-t border-neutral-800 text-sm">

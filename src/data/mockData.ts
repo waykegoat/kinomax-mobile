@@ -49,6 +49,8 @@ export interface Ticket {
   seats: string;
   rawSeats?: string[];
   price: number;
+  bonusesUsed?: number;
+  bonusesEarned?: number;
   qrCode: string;
   isExpired?: boolean;
   bgGradient: string;
@@ -226,7 +228,7 @@ export const MOVIES: Movie[] = [
     hallId: 'hall-3',
     showtimes: [
       { time: '16:00', format: 'IMAX', price: 600, hall: 'Зал 3 IMAX' },
-      { time: '19:00', format: 'IMAX', price: 700, hall: 'Зал 3 IMAX' },
+      { time: '19:15', format: 'IMAX', price: 700, hall: 'Зал 3 IMAX' },
       { time: '22:15', format: '2D', price: 450, hall: 'Зал 1' },
     ],
   },

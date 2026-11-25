@@ -85,9 +85,20 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           <User size={36} />
         </div>
         <h2 className="text-xl font-bold mb-2">Вход в профиль</h2>
-        <p className="text-xs text-neutral-400 mb-6 max-w-xs">
-          Войдите, чтобы просматривать купленные билеты, сохранять способы оплаты и копить бонусы.
+        <p className="text-xs text-neutral-400 mb-4 max-w-xs">
+          Войдите, чтобы просматривать купленные билеты, сохранять способы оплаты и пользоваться бонусами.
         </p>
+
+        <div className="w-full max-w-[280px] mb-5 p-3 rounded-2xl bg-[#1C1C22] border border-[#E52E84]/30 text-left flex items-start gap-2.5">
+          <Award size={18} className="text-[#E52E84] shrink-0 mt-0.5" />
+          <div>
+            <p className="text-[11px] font-bold text-white">Бонусы Киномакс (1 Б = 1 ₽)</p>
+            <p className="text-[10px] text-neutral-400 leading-relaxed mt-0.5">
+              Начисление +5% кэшбэка и списание до 50% стоимости заказа доступны только после входа в аккаунт.
+            </p>
+          </div>
+        </div>
+
         <button
           onClick={onOpenLogin}
           className="w-full max-w-[260px] py-3.5 bg-[#E52E84] hover:bg-[#F03A92] active:scale-98 text-white font-bold rounded-2xl text-sm transition-all shadow-lg shadow-pink-900/40 cursor-pointer"
@@ -466,9 +477,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         <p className="text-xs text-neutral-400 mt-0.5">{user.email}</p>
         {user.phone && <p className="text-[11px] text-neutral-500 mt-0.5">{user.phone}</p>}
 
-        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E52E84]/15 border border-[#E52E84]/30 text-pink-300 text-xs font-bold">
-          <Award size={14} className="text-[#E52E84]" />
-          <span>{user.bonuses ?? 420} бонусов Киномакс</span>
+        <div className="mt-3 w-full max-w-[290px] px-3.5 py-2.5 rounded-2xl bg-[#E52E84]/12 border border-[#E52E84]/35 text-center">
+          <div className="inline-flex items-center gap-1.5 text-pink-300 text-xs font-bold">
+            <Award size={14} className="text-[#E52E84]" />
+            <span>{user.bonuses ?? 0} бонусов Киномакс</span>
+          </div>
+          <p className="text-[10px] text-neutral-400 mt-1">
+            1 бонус = 1 ₽ · списание до 50% · +5% кэшбэк
+          </p>
         </div>
       </div>
 

@@ -62,6 +62,7 @@ interface ScheduledSession {
   format: '2D' | '3D' | 'IMAX';
   hallName: string;
   price: number;
+  surcharge: number;
 }
 
 const formatDatesFromRange = (fromStr: string, toStr: string): string[] => {
@@ -90,12 +91,17 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
 }) => {
   const isEditing = Boolean(initialMovie);
   const defaultHall = halls.find((h) => h.id === initialMovie?.hallId) || halls[0];
+  const initialMinBase = initialMovie
+    ? initialMovie.showtimes.length > 0
+      ? Math.min(...initialMovie.showtimes.map((s) => s.price), initialMovie.priceFrom)
+      : initialMovie.priceFrom
+    : 380;
 
   const [title, setTitle] = useState(initialMovie?.title || '');
   const [genre, setGenre] = useState(initialMovie?.genre || 'Фантастика / Приключения');
   const [age, setAge] = useState(initialMovie?.age || '16+');
   const [durationMinutes, setDurationMinutes] = useState<number>(initialMovie?.durationMinutes || 135);
-  const [basePrice, setBasePrice] = useState<number>(initialMovie?.priceFrom || 380);
+  const [basePrice, setBasePrice] = useState<number>(initialMinBase);
   const [description, setDescription] = useState(initialMovie?.description || '');
   const [posterImage, setPosterImage] = useState<string>(initialMovie?.posterImage || '');
   const [posterBg, setPosterBg] = useState(initialMovie?.posterBg || '#221c2c');
@@ -122,32 +128,65 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
         format: (st.format === '3D' || st.format === 'IMAX' ? st.format : '2D') as '2D' | '3D' | 'IMAX',
         hallName: st.hall,
         price: st.price,
+        surcharge: Math.max(0, st.price - initialMinBase),
       }));
     }
+    const mod = defaultHall?.priceModifier || 0;
     return [
       {
         id: 's-1',
         time: '11:00',
         format: '2D',
         hallName: defaultHall?.name || 'Зал 1',
-        price: 380 + (defaultHall?.priceModifier || 0),
+        price: 380 + mod,
+        surcharge: mod,
       },
       {
         id: 's-2',
         time: '14:30',
         format: '2D',
         hallName: defaultHall?.name || 'Зал 1',
-        price: 420 + (defaultHall?.priceModifier || 0),
+        price: 420 + mod,
+        surcharge: 40 + mod,
       },
       {
         id: 's-3',
         time: '18:00',
         format: '2D',
         hallName: defaultHall?.name || 'Зал 1',
-        price: 450 + (defaultHall?.priceModifier || 0),
+        price: 450 + mod,
+        surcharge: 70 + mod,
       },
     ];
   });
+
+  const handleBasePriceChange = (rawVal: number) => {
+    const cleanVal = isNaN(rawVal) ? 0 : rawVal;
+    setBasePrice(cleanVal);
+    if (cleanVal >= 100) {
+      setSessions((prev) =>
+        prev.map((s) => ({
+          ...s,
+          price: Math.max(100, cleanVal + s.surcharge),
+        }))
+      );
+    }
+  };
+
+  const handleSessionPriceChange = (sessionId: string, rawVal: number) => {
+    const cleanVal = isNaN(rawVal) ? 0 : rawVal;
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId
+          ? {
+              ...s,
+              price: cleanVal,
+              surcharge: Math.max(0, cleanVal - (basePrice || 0)),
+            }
+          : s
+      )
+    );
+  };
 
   const [newSessionTime, setNewSessionTime] = useState('21:15');
   const [newSessionFormat, setNewSessionFormat] = useState<'2D' | '3D' | 'IMAX'>('2D');
@@ -204,11 +243,16 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
   const handleHallSelect = (hall: Hall) => {
     setSelectedHallId(hall.id);
     setSessions((prev) =>
-      prev.map((s) => ({
-        ...s,
-        hallName: hall.name,
-        price: basePrice + hall.priceModifier + (s.format === '3D' ? 50 : s.format === 'IMAX' ? 150 : 0),
-      }))
+      prev.map((s) => {
+        const formatExtra = s.format === '3D' ? 50 : s.format === 'IMAX' ? 150 : 0;
+        const surcharge = hall.priceModifier + formatExtra;
+        return {
+          ...s,
+          hallName: hall.name,
+          surcharge,
+          price: Math.max(100, (basePrice || 350) + surcharge),
+        };
+      })
     );
   };
 
@@ -227,7 +271,8 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
       const m = currentMins % 60;
       const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
       const format = selectedHall?.type === 'imax' ? 'IMAX' : idx % 2 === 0 ? '3D' : '2D';
-      const price = safePrice + (selectedHall?.priceModifier || 0) + (format === '3D' ? 50 : 0);
+      const surcharge = (selectedHall?.priceModifier || 0) + (format === '3D' ? 50 : format === 'IMAX' ? 150 : 0);
+      const price = safePrice + surcharge;
 
       generated.push({
         id: `auto-${idx}-${Date.now()}`,
@@ -235,6 +280,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
         format,
         hallName: selectedHall?.name || 'Зал 1',
         price,
+        surcharge,
       });
 
       currentMins += blockMins;
@@ -295,10 +341,10 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
     }
 
     setSessionError(null);
-    const price =
-      (basePrice || 350) +
+    const surcharge =
       (selectedHall?.priceModifier || 0) +
       (newSessionFormat === '3D' ? 50 : newSessionFormat === 'IMAX' ? 150 : 0);
+    const price = (basePrice || 350) + surcharge;
 
     const newS: ScheduledSession = {
       id: `s-${Date.now()}`,
@@ -306,6 +352,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
       format: newSessionFormat,
       hallName: currentHallName,
       price,
+      surcharge,
     };
     setSessions([...sessions, newS].sort((a, b) => a.time.localeCompare(b.time)));
   };
@@ -354,6 +401,8 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
       nextErrs.sessions = 'Добавьте хотя бы один сеанс для фильма';
     } else if (collisionList.length > 0) {
       nextErrs.sessions = 'Устраните пересечения сеансов в одном зале';
+    } else if (sessions.some((s) => !s.price || isNaN(s.price) || s.price < 100 || s.price > 10000)) {
+      nextErrs.sessions = 'Цена каждого сеанса должна быть от 100 до 10 000 ₽';
     }
 
     if (Object.values(nextErrs).some(Boolean)) {
@@ -596,7 +645,7 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                 value={basePrice || ''}
                 onChange={(e) => {
                   const val = parseInt(e.target.value, 10);
-                  setBasePrice(isNaN(val) ? 0 : val);
+                  handleBasePriceChange(val);
                   if (fieldErrors.price) setFieldErrors({ ...fieldErrors, price: null });
                 }}
                 className={`w-full bg-[#121214] border rounded-xl px-3 py-2 text-xs text-white focus:outline-none ${
@@ -801,11 +850,11 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                     key={s.id}
                     className="p-2.5 bg-[#121214] border border-neutral-800/80 rounded-xl flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className="px-2 py-1 rounded-lg bg-pink-950/50 border border-pink-500/30 text-white font-mono text-xs font-bold">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="px-2 py-1 rounded-lg bg-pink-950/50 border border-pink-500/30 text-white font-mono text-xs font-bold shrink-0">
                         {s.time}
                       </div>
-                      <div>
+                      <div className="min-w-0">
                         <div className="text-[11px] font-semibold text-white flex items-center gap-1.5">
                           <span>
                             {s.time} – {endTime}
@@ -814,19 +863,34 @@ export const AdminAddMovie: React.FC<AdminAddMovieProps> = ({
                             {s.format}
                           </span>
                         </div>
-                        <div className="text-[10px] text-neutral-400">
-                          {s.hallName} • {s.price} ₽
+                        <div className="text-[10px] text-neutral-400 truncate">
+                          {s.hallName}
                         </div>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSession(s.id)}
-                      className="text-neutral-500 hover:text-red-400 p-1.5 transition-colors cursor-pointer"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="relative flex items-center">
+                        <input
+                          type="number"
+                          min={100}
+                          max={10000}
+                          value={s.price || ''}
+                          onChange={(e) => handleSessionPriceChange(s.id, parseInt(e.target.value, 10))}
+                          className="w-16 bg-[#1C1C22] border border-neutral-700/80 rounded-lg px-2 py-1 text-[11px] font-mono text-pink-300 text-right focus:outline-none focus:border-[#E52E84]"
+                          title="Цена билета на этот сеанс"
+                        />
+                        <span className="text-[10px] text-neutral-500 ml-1">₽</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSession(s.id)}
+                        className="text-neutral-500 hover:text-red-400 p-1.5 transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 );
               })

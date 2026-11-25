@@ -43,6 +43,7 @@ export const App: React.FC = () => {
   const [overlayScreen, setOverlayScreen] = useState<
     null | 'movie_detail' | 'seat_selection' | 'payment' | 'auth' | 'admin_login' | 'admin_panel'
   >(null);
+  const [returnToPayment, setReturnToPayment] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Cinema Movies State (persisted + auto-heal built-in poster URLs)
@@ -292,10 +293,12 @@ export const App: React.FC = () => {
       [key]: Array.from(new Set([...(prev[key] || []), ...seatsToBook])),
     }));
 
-    // Add 5% cashback bonuses to user profile
+    // Deduct spent bonuses and add 5% cashback strictly for authorized users
     if (user) {
-      const earned = Math.round(newTicket.price * 0.05);
-      handleUpdateUser({ ...user, bonuses: (user.bonuses ?? 0) + earned });
+      const used = Math.max(0, newTicket.bonusesUsed || 0);
+      const earned = newTicket.bonusesEarned ?? Math.round(newTicket.price * 0.05);
+      const nextBonuses = Math.max(0, (user.bonuses ?? 0) - used + earned);
+      handleUpdateUser({ ...user, bonuses: nextBonuses });
     }
 
     // Update real-time purchase statistics
@@ -353,6 +356,16 @@ export const App: React.FC = () => {
         });
       }
 
+      // Revert spent/earned bonuses on refund only for authorized user
+      if (user) {
+        const used = refunded.bonusesUsed || 0;
+        const earned = refunded.bonusesEarned || 0;
+        if (used > 0 || earned > 0) {
+          const restoredBonuses = Math.max(0, (user.bonuses ?? 0) + used - earned);
+          handleUpdateUser({ ...user, bonuses: restoredBonuses });
+        }
+      }
+
       setStats((prev) => {
         const currentMovieStat = prev.movieStats[refunded.movieId] || {
           movieTitle: refunded.movieTitle,
@@ -389,6 +402,7 @@ export const App: React.FC = () => {
   };
 
   const handleTabChange = (tabId: string) => {
+    setReturnToPayment(false);
     setOverlayScreen(null);
     setCurrentTab(tabId as any);
   };
@@ -469,7 +483,10 @@ export const App: React.FC = () => {
               onAddCard={handleAddCard}
               onDeleteCard={handleDeleteCard}
               onUpdateUser={handleUpdateUser}
-              onOpenLogin={() => setOverlayScreen('auth')}
+              onOpenLogin={() => {
+                setReturnToPayment(false);
+                setOverlayScreen('auth');
+              }}
               onLogout={() => setUser(null)}
               onNavigateTickets={() => setCurrentTab('tickets')}
               onOpenAdmin={handleOpenAdmin}
@@ -502,7 +519,7 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {overlayScreen === 'payment' && (
+          {(overlayScreen === 'payment' || (overlayScreen === 'auth' && returnToPayment)) && (
             <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <PaymentScreen
                 movie={selectedMovie}
@@ -514,13 +531,19 @@ export const App: React.FC = () => {
                 savedCards={savedCards}
                 onAddCard={handleAddCard}
                 onDeleteCard={handleDeleteCard}
+                onOpenLogin={() => {
+                  setReturnToPayment(true);
+                  setOverlayScreen('auth');
+                }}
                 onBack={() => setOverlayScreen('seat_selection')}
                 onSuccess={handlePaymentSuccess}
                 onGoHome={() => {
+                  setReturnToPayment(false);
                   setOverlayScreen(null);
                   setCurrentTab('home');
                 }}
                 onGoTickets={() => {
+                  setReturnToPayment(false);
                   setOverlayScreen(null);
                   setCurrentTab('tickets');
                 }}
@@ -529,7 +552,7 @@ export const App: React.FC = () => {
           )}
 
           {overlayScreen === 'auth' && (
-            <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
+            <div className="absolute inset-0 z-50 bg-[#121214] flex flex-col">
               <AuthScreens
                 initialScreen="login"
                 accounts={accounts}
@@ -537,9 +560,21 @@ export const App: React.FC = () => {
                 onUpdatePassword={handleUpdatePassword}
                 onSuccess={(u) => {
                   setUser(u);
-                  setOverlayScreen(null);
+                  if (returnToPayment) {
+                    setReturnToPayment(false);
+                    setOverlayScreen('payment');
+                  } else {
+                    setOverlayScreen(null);
+                  }
                 }}
-                onBack={() => setOverlayScreen(null)}
+                onBack={() => {
+                  if (returnToPayment) {
+                    setReturnToPayment(false);
+                    setOverlayScreen('payment');
+                  } else {
+                    setOverlayScreen(null);
+                  }
+                }}
               />
             </div>
           )}
