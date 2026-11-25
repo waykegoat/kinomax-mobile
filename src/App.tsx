@@ -4,8 +4,20 @@ import {
   INITIAL_TICKETS,
   INITIAL_HALLS,
   INITIAL_STATS,
+  INITIAL_SAVED_CARDS,
+  INITIAL_ACCOUNTS,
 } from './data/mockData';
-import type { Movie, Ticket, Hall, PurchaseStats } from './data/mockData';
+import type {
+  Movie,
+  Ticket,
+  Hall,
+  PurchaseStats,
+  UserProfile,
+  StoredAccount,
+  SavedCard,
+  GiftCertificate,
+} from './data/mockData';
+import { getStorageItem, setStorageItem } from './utils/validation';
 import { MobileStatusBar } from './components/MobileStatusBar';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './components/HomeScreen';
@@ -22,6 +34,9 @@ import { AdminLogin } from './components/Admin/AdminLogin';
 import { AdminPanel } from './components/Admin/AdminPanel';
 import { Smartphone, Monitor } from 'lucide-react';
 
+const getSessionKey = (movieId: string, date: string, time: string) =>
+  `${movieId}__${date}__${time}`;
+
 export const App: React.FC = () => {
   // Navigation State
   const [currentTab, setCurrentTab] = useState<'home' | 'search' | 'catalog' | 'tickets' | 'profile'>('home');
@@ -30,61 +45,41 @@ export const App: React.FC = () => {
   >(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Cinema Movies State (persisted)
+  // Cinema Movies State (persisted + auto-heal built-in poster URLs)
   const [movies, setMovies] = useState<Movie[]>(() => {
-    try {
-      const saved = localStorage.getItem('kinomax_movies');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
+    const saved = getStorageItem<Movie[] | null>('kinomax_movies', null);
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      return saved.map((m) => {
+        const preset = MOVIES.find((p) => p.id === m.id);
+        if (preset && (!m.posterImage || (!m.posterImage.startsWith('data:') && !m.posterImage.startsWith('http')))) {
+          return { ...m, posterImage: preset.posterImage };
+        }
+        return m;
+      });
     }
     return MOVIES;
   });
 
   useEffect(() => {
-    try {
-      localStorage.setItem('kinomax_movies', JSON.stringify(movies));
-    } catch {
-      // ignore
-    }
+    setStorageItem('kinomax_movies', movies);
   }, [movies]);
 
   // Cinema Halls State (persisted)
-  const [halls, setHalls] = useState<Hall[]>(() => {
-    try {
-      const saved = localStorage.getItem('kinomax_halls');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return INITIAL_HALLS;
-  });
+  const [halls, setHalls] = useState<Hall[]>(() =>
+    getStorageItem('kinomax_halls', INITIAL_HALLS)
+  );
 
   useEffect(() => {
-    try {
-      localStorage.setItem('kinomax_halls', JSON.stringify(halls));
-    } catch {
-      // ignore
-    }
+    setStorageItem('kinomax_halls', halls);
   }, [halls]);
 
   // Purchase Statistics State (persisted)
-  const [stats, setStats] = useState<PurchaseStats>(() => {
-    try {
-      const saved = localStorage.getItem('kinomax_stats');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return INITIAL_STATS;
-  });
+  const [stats, setStats] = useState<PurchaseStats>(() =>
+    getStorageItem('kinomax_stats', INITIAL_STATS)
+  );
 
   useEffect(() => {
-    try {
-      localStorage.setItem('kinomax_stats', JSON.stringify(stats));
-    } catch {
-      // ignore
-    }
+    setStorageItem('kinomax_stats', stats);
   }, [stats]);
 
   // Admin Auth State (persisted)
@@ -114,54 +109,163 @@ export const App: React.FC = () => {
     }
   };
 
+  // Registered Accounts Directory (persisted)
+  const [accounts, setAccounts] = useState<StoredAccount[]>(() =>
+    getStorageItem('kinomax_accounts', INITIAL_ACCOUNTS)
+  );
+
+  useEffect(() => {
+    setStorageItem('kinomax_accounts', accounts);
+  }, [accounts]);
+
+  // Active User Profile (persisted, supports logged-out null)
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    try {
+      const raw = localStorage.getItem('kinomax_user');
+      if (raw !== null) return JSON.parse(raw);
+    } catch {
+      // ignore
+    }
+    const def = INITIAL_ACCOUNTS[0];
+    return {
+      name: def.name,
+      email: def.email,
+      phone: def.phone,
+      bonuses: def.bonuses,
+      notificationsEnabled: def.notificationsEnabled,
+    };
+  });
+
+  useEffect(() => {
+    setStorageItem('kinomax_user', user);
+  }, [user]);
+
+  // Saved Bank Cards (persisted)
+  const [savedCards, setSavedCards] = useState<SavedCard[]>(() =>
+    getStorageItem('kinomax_cards', INITIAL_SAVED_CARDS)
+  );
+
+  useEffect(() => {
+    setStorageItem('kinomax_cards', savedCards);
+  }, [savedCards]);
+
+  // Favorites / Watchlist (persisted)
+  const [favorites, setFavorites] = useState<string[]>(() =>
+    getStorageItem('kinomax_favorites', [])
+  );
+
+  useEffect(() => {
+    setStorageItem('kinomax_favorites', favorites);
+  }, [favorites]);
+
+  // Gift Certificates (persisted)
+  const [certificates, setCertificates] = useState<GiftCertificate[]>(() =>
+    getStorageItem('kinomax_certificates', [])
+  );
+
+  useEffect(() => {
+    setStorageItem('kinomax_certificates', certificates);
+  }, [certificates]);
+
+  // Tickets State (persisted)
+  const [tickets, setTickets] = useState<Ticket[]>(() =>
+    getStorageItem('kinomax_tickets', INITIAL_TICKETS)
+  );
+
+  useEffect(() => {
+    setStorageItem('kinomax_tickets', tickets);
+  }, [tickets]);
+
+  // Booked Seats per Session (persisted)
+  const [bookedSeatsMap, setBookedSeatsMap] = useState<Record<string, string[]>>(() =>
+    getStorageItem('kinomax_booked_seats', {})
+  );
+
+  useEffect(() => {
+    setStorageItem('kinomax_booked_seats', bookedSeatsMap);
+  }, [bookedSeatsMap]);
+
   // Booking Flow State
   const [selectedMovie, setSelectedMovie] = useState<Movie>(movies[0] || MOVIES[0]);
-  const [selectedDate, setSelectedDate] = useState('22 окт');
+  const [selectedDate, setSelectedDate] = useState('Сегодня');
   const [selectedShowtime, setSelectedShowtime] = useState(
     (movies[0] || MOVIES[0]).showtimes[0]
   );
   const [selectedSeats, setSelectedSeats] = useState<string[]>(['5-4', '5-5']);
   const [bookingTotalPrice, setBookingTotalPrice] = useState(840);
 
-  // User State
-  const [user, setUser] = useState<{ name: string; email: string } | null>({
-    name: 'Иван Петров',
-    email: 'ivan@mail.ru',
-  });
-
-  // Tickets State (persisted in localStorage)
-  const [tickets, setTickets] = useState<Ticket[]>(() => {
-    try {
-      const saved = localStorage.getItem('kinomax_tickets');
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return INITIAL_TICKETS;
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('kinomax_tickets', JSON.stringify(tickets));
-    } catch {
-      // ignore
-    }
-  }, [tickets]);
-
-  // Frame Display Mode (Device frame vs Full screen)
+  // Frame Display Mode
   const [frameMode, setFrameMode] = useState<'device' | 'fluid'>('device');
 
-  // Handlers
+  // Keep selectedMovie synced when admin updates movies
+  const handleUpdateMovies = (nextMovies: Movie[]) => {
+    setMovies(nextMovies);
+    const updatedSelected = nextMovies.find((m) => m.id === selectedMovie.id);
+    if (updatedSelected) {
+      setSelectedMovie(updatedSelected);
+    } else if (nextMovies.length > 0) {
+      setSelectedMovie(nextMovies[0]);
+    }
+  };
+
+  // Account Handlers
+  const handleRegisterAccount = (newAcc: StoredAccount) => {
+    setAccounts((prev) => [...prev, newAcc]);
+  };
+
+  const handleUpdatePassword = (identifier: string, newPassword: string) => {
+    const clean = identifier.trim().toLowerCase();
+    const digits = identifier.replace(/\D/g, '');
+    setAccounts((prev) =>
+      prev.map((acc) => {
+        const matchEmail = acc.email.toLowerCase() === clean;
+        const matchPhone = digits.length >= 10 && acc.phone?.replace(/\D/g, '') === digits;
+        return matchEmail || matchPhone ? { ...acc, password: newPassword } : acc;
+      })
+    );
+  };
+
+  const handleUpdateUser = (updated: UserProfile) => {
+    const oldEmail = user?.email?.toLowerCase();
+    setUser(updated);
+    setAccounts((prev) =>
+      prev.map((acc) =>
+        acc.email.toLowerCase() === oldEmail || acc.email.toLowerCase() === updated.email.toLowerCase()
+          ? { ...acc, ...updated }
+          : acc
+      )
+    );
+  };
+
+  const handleAddCard = (card: SavedCard) => {
+    setSavedCards((prev) => [card, ...prev]);
+  };
+
+  const handleDeleteCard = (id: string) => {
+    setSavedCards((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const handleToggleFavorite = (movieId: string) => {
+    setFavorites((prev) =>
+      prev.includes(movieId) ? prev.filter((id) => id !== movieId) : [...prev, movieId]
+    );
+  };
+
+  const handleBuyCertificate = (cert: GiftCertificate) => {
+    setCertificates((prev) => [cert, ...prev]);
+  };
+
+  // Booking Handlers
   const handleSelectMovie = (movie: Movie) => {
     setSelectedMovie(movie);
     setSelectedShowtime(movie.showtimes[0]);
     setOverlayScreen('movie_detail');
   };
 
-  const handleQuickShowtime = (movie: Movie, showtime: Movie['showtimes'][0]) => {
+  const handleQuickShowtime = (movie: Movie, showtime: Movie['showtimes'][0], date?: string) => {
     setSelectedMovie(movie);
     setSelectedShowtime(showtime);
-    setSelectedDate('22 окт');
+    setSelectedDate(date || movie.dates[0] || 'Сегодня');
     setOverlayScreen('seat_selection');
   };
 
@@ -178,7 +282,21 @@ export const App: React.FC = () => {
   };
 
   const handlePaymentSuccess = (newTicket: Ticket) => {
-    setTickets([newTicket, ...tickets]);
+    setTickets((prev) => [newTicket, ...prev]);
+
+    // Persist occupied seats
+    const key = getSessionKey(newTicket.movieId, newTicket.date, newTicket.time);
+    const seatsToBook = newTicket.rawSeats || selectedSeats;
+    setBookedSeatsMap((prev) => ({
+      ...prev,
+      [key]: Array.from(new Set([...(prev[key] || []), ...seatsToBook])),
+    }));
+
+    // Add 5% cashback bonuses to user profile
+    if (user) {
+      const earned = Math.round(newTicket.price * 0.05);
+      handleUpdateUser({ ...user, bonuses: (user.bonuses ?? 0) + earned });
+    }
 
     // Update real-time purchase statistics
     setStats((prev) => {
@@ -188,9 +306,7 @@ export const App: React.FC = () => {
         revenue: 0,
         refundCount: 0,
       };
-
-      const seatsCount = selectedSeats.length || 1;
-
+      const seatsCount = seatsToBook.length || 1;
       return {
         ...prev,
         totalSold: prev.totalSold + seatsCount,
@@ -225,7 +341,18 @@ export const App: React.FC = () => {
     setTickets(tickets.filter((t) => t.id !== ticketId));
 
     if (refunded) {
-      // Update real-time refund statistics
+      // Free seats if recorded
+      if (refunded.rawSeats && refunded.rawSeats.length > 0) {
+        const key = getSessionKey(refunded.movieId, refunded.date, refunded.time);
+        setBookedSeatsMap((prev) => {
+          const cur = prev[key] || [];
+          return {
+            ...prev,
+            [key]: cur.filter((s) => !refunded.rawSeats?.includes(s)),
+          };
+        });
+      }
+
       setStats((prev) => {
         const currentMovieStat = prev.movieStats[refunded.movieId] || {
           movieTitle: refunded.movieTitle,
@@ -233,7 +360,6 @@ export const App: React.FC = () => {
           revenue: 0,
           refundCount: 0,
         };
-
         return {
           ...prev,
           totalRefunded: prev.totalRefunded + 1,
@@ -267,9 +393,12 @@ export const App: React.FC = () => {
     setCurrentTab(tabId as any);
   };
 
+  const activeSessionKey = getSessionKey(selectedMovie.id, selectedDate, selectedShowtime.time);
+  const bookedSeatsForActiveSession = bookedSeatsMap[activeSessionKey] || [];
+
   return (
     <div className="min-h-screen bg-[#070709] text-white flex flex-col items-center justify-center relative p-0 sm:p-4 select-none">
-      {/* Desktop Toolbar to switch presentation or quick test Figma frames */}
+      {/* Desktop Toolbar */}
       <div className="hidden sm:flex items-center gap-2 mb-3 bg-[#18181C] border border-neutral-800 px-3.5 py-1.5 rounded-full text-xs text-neutral-400 z-50">
         <span className="font-semibold text-white">КИНОМАКС • Мобильная версия</span>
         <span className="text-neutral-600">|</span>
@@ -299,15 +428,14 @@ export const App: React.FC = () => {
           frameMode === 'fluid' ? '!max-w-md !border-0 !rounded-none !shadow-none' : ''
         }`}
       >
-        {/* iOS Dynamic Status Bar */}
         <MobileStatusBar />
 
-        {/* Dynamic Screen View */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          {/* Main Tab Screen */}
           {currentTab === 'home' && (
             <HomeScreen
               movies={movies}
+              certificates={certificates}
+              onBuyCertificate={handleBuyCertificate}
               onOpenDrawer={() => setIsDrawerOpen(true)}
               onSelectMovie={handleSelectMovie}
               onQuickShowtime={handleQuickShowtime}
@@ -319,7 +447,11 @@ export const App: React.FC = () => {
           )}
 
           {currentTab === 'catalog' && (
-            <CatalogScreen movies={movies} onSelectMovie={handleSelectMovie} />
+            <CatalogScreen
+              movies={movies}
+              favorites={favorites}
+              onSelectMovie={handleSelectMovie}
+            />
           )}
 
           {currentTab === 'tickets' && (
@@ -333,6 +465,10 @@ export const App: React.FC = () => {
           {currentTab === 'profile' && (
             <ProfileScreen
               user={user}
+              savedCards={savedCards}
+              onAddCard={handleAddCard}
+              onDeleteCard={handleDeleteCard}
+              onUpdateUser={handleUpdateUser}
               onOpenLogin={() => setOverlayScreen('auth')}
               onLogout={() => setUser(null)}
               onNavigateTickets={() => setCurrentTab('tickets')}
@@ -340,11 +476,12 @@ export const App: React.FC = () => {
             />
           )}
 
-          {/* Overlays / Sub-screens */}
           {overlayScreen === 'movie_detail' && (
             <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <MovieDetailScreen
                 movie={selectedMovie}
+                isLiked={favorites.includes(selectedMovie.id)}
+                onToggleFavorite={handleToggleFavorite}
                 onBack={() => setOverlayScreen(null)}
                 onSelectSeats={handleSelectSeatsFromDetail}
               />
@@ -358,6 +495,7 @@ export const App: React.FC = () => {
                 selectedDate={selectedDate}
                 selectedShowtime={selectedShowtime}
                 halls={halls}
+                bookedSeatsForSession={bookedSeatsForActiveSession}
                 onBack={() => setOverlayScreen('movie_detail')}
                 onProceedToPayment={handleProceedToPayment}
               />
@@ -372,6 +510,10 @@ export const App: React.FC = () => {
                 selectedShowtime={selectedShowtime}
                 selectedSeats={selectedSeats}
                 totalPrice={bookingTotalPrice}
+                user={user}
+                savedCards={savedCards}
+                onAddCard={handleAddCard}
+                onDeleteCard={handleDeleteCard}
                 onBack={() => setOverlayScreen('seat_selection')}
                 onSuccess={handlePaymentSuccess}
                 onGoHome={() => {
@@ -390,6 +532,9 @@ export const App: React.FC = () => {
             <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <AuthScreens
                 initialScreen="login"
+                accounts={accounts}
+                onRegisterAccount={handleRegisterAccount}
+                onUpdatePassword={handleUpdatePassword}
                 onSuccess={(u) => {
                   setUser(u);
                   setOverlayScreen(null);
@@ -399,7 +544,6 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Admin Login Modal Overlay */}
           {overlayScreen === 'admin_login' && (
             <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <AdminLogin
@@ -409,14 +553,13 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Admin Panel Overlay */}
           {overlayScreen === 'admin_panel' && (
             <div className="absolute inset-0 z-40 bg-[#121214] flex flex-col">
               <AdminPanel
                 movies={movies}
                 halls={halls}
                 stats={stats}
-                onUpdateMovies={(newM) => setMovies(newM)}
+                onUpdateMovies={handleUpdateMovies}
                 onUpdateHalls={(newH) => setHalls(newH)}
                 onExit={() => setOverlayScreen(null)}
               />
@@ -424,7 +567,6 @@ export const App: React.FC = () => {
           )}
         </div>
 
-        {/* Side Drawer Menu - strictly contained inside phone container */}
         <SideDrawer
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
@@ -435,7 +577,6 @@ export const App: React.FC = () => {
           onOpenAdmin={handleOpenAdmin}
         />
 
-        {/* Bottom Tab Bar */}
         <BottomNav
           currentTab={currentTab}
           onTabChange={handleTabChange}

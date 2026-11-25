@@ -10,19 +10,30 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ username?: string; password?: string }>({});
 
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!username.trim() || !password.trim()) {
-      setError('Пожалуйста, заполните логин и пароль');
+    const nextFieldErrors: { username?: string; password?: string } = {};
+    if (!username.trim()) nextFieldErrors.username = 'Введите логин администратора';
+    else if (username.trim().length < 3) nextFieldErrors.username = 'Минимум 3 символа';
+
+    if (!password) nextFieldErrors.password = 'Введите пароль';
+    else if (password.length < 4) nextFieldErrors.password = 'Минимум 4 символа';
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError('Заполните обязательные поля');
       return;
     }
 
     // Default admin credentials: admin / admin or admin123
     if (username.trim().toLowerCase() === 'admin' && (password === 'admin' || password === 'admin123')) {
+      setFieldErrors({});
       setError(null);
       onSuccess();
     } else {
+      setFieldErrors({ password: 'Неверный пароль' });
       setError('Неверный логин или пароль администратора');
     }
   };
@@ -95,37 +106,55 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
         )}
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="w-full space-y-3.5">
+        <form onSubmit={handleLogin} noValidate className="w-full space-y-3.5">
           <div>
             <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-              Логин
+              Логин *
             </label>
             <div className="relative">
               <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (fieldErrors.username) setFieldErrors({ ...fieldErrors, username: undefined });
+                  if (error) setError(null);
+                }}
                 placeholder="Логин администратора"
-                className="w-full bg-[#1A1A1E] border border-neutral-700/80 rounded-2xl py-3 pl-10 pr-4 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#E52E84] transition-colors"
+                className={`w-full bg-[#1A1A1E] border rounded-2xl py-3 pl-10 pr-4 text-xs text-white placeholder-neutral-500 focus:outline-none transition-colors ${
+                  fieldErrors.username ? 'border-red-500' : 'border-neutral-700/80 focus:border-[#E52E84]'
+                }`}
               />
             </div>
+            {fieldErrors.username && (
+              <p className="text-[11px] text-red-400 mt-1">{fieldErrors.username}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-[11px] font-bold text-neutral-300 uppercase tracking-wider mb-1.5">
-              Пароль
+              Пароль *
             </label>
             <div className="relative">
               <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: undefined });
+                  if (error) setError(null);
+                }}
                 placeholder="Пароль администратора"
-                className="w-full bg-[#1A1A1E] border border-neutral-700/80 rounded-2xl py-3 pl-10 pr-4 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#E52E84] transition-colors"
+                className={`w-full bg-[#1A1A1E] border rounded-2xl py-3 pl-10 pr-4 text-xs text-white placeholder-neutral-500 focus:outline-none transition-colors ${
+                  fieldErrors.password ? 'border-red-500' : 'border-neutral-700/80 focus:border-[#E52E84]'
+                }`}
               />
             </div>
+            {fieldErrors.password && (
+              <p className="text-[11px] text-red-400 mt-1">{fieldErrors.password}</p>
+            )}
           </div>
 
           <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Pencil } from 'lucide-react';
 import type { Movie, Hall } from '../../data/mockData';
 import { MoviePoster } from '../MoviePoster';
 
@@ -7,6 +7,7 @@ interface AdminMovieListProps {
   movies: Movie[];
   halls: Hall[];
   onAddMovieClick: () => void;
+  onEditMovie: (movie: Movie) => void;
   onDeleteMovie: (id: string) => void;
 }
 
@@ -14,6 +15,7 @@ export const AdminMovieList: React.FC<AdminMovieListProps> = ({
   movies,
   halls,
   onAddMovieClick,
+  onEditMovie,
   onDeleteMovie,
 }) => {
   return (
@@ -56,19 +58,28 @@ export const AdminMovieList: React.FC<AdminMovieListProps> = ({
 
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <h3 className="text-sm font-black text-white leading-tight">
                         {movie.title}
                       </h3>
-                      {movies.length > 1 && (
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
-                          onClick={() => onDeleteMovie(movie.id)}
-                          className="text-neutral-500 hover:text-red-400 p-1 transition-colors"
-                          title="Снять фильм с проката"
+                          onClick={() => onEditMovie(movie)}
+                          className="text-neutral-400 hover:text-[#E52E84] p-1 transition-colors cursor-pointer"
+                          title="Редактировать фильм"
                         >
-                          <Trash2 size={14} />
+                          <Pencil size={14} />
                         </button>
-                      )}
+                        {movies.length > 1 && (
+                          <button
+                            onClick={() => onDeleteMovie(movie.id)}
+                            className="text-neutral-500 hover:text-red-400 p-1 transition-colors cursor-pointer"
+                            title="Снять фильм с проката"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="text-[11px] text-neutral-400 mt-1">
                       {movie.age} • {movie.duration}

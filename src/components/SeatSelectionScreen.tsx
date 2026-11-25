@@ -12,6 +12,7 @@ interface SeatSelectionScreenProps {
     hall: string;
   };
   halls?: Hall[];
+  bookedSeatsForSession?: string[];
   onBack: () => void;
   onProceedToPayment: (selectedSeats: string[], totalPrice: number) => void;
 }
@@ -21,25 +22,38 @@ export const SeatSelectionScreen: React.FC<SeatSelectionScreenProps> = ({
   selectedDate,
   selectedShowtime,
   halls,
+  bookedSeatsForSession = [],
   onBack,
   onProceedToPayment,
 }) => {
-  // Pre-selected seats matching Figma node 2047-2 flow (Row 5, seats 4 and 5)
-  const [selectedSeats, setSelectedSeats] = useState<string[]>(['5-4', '5-5']);
-
-  // Occupied seats
-  const occupiedSeats = new Set([
-    '2-3', '2-4', '3-5', '3-6', '3-7', '4-2', '4-3', '4-8', '4-9', '6-1', '6-2', '6-9', '6-10'
-  ]);
-
   // Find active hall from passed halls or use default
-  const activeHall = halls?.find(
-    (h) => h.name === selectedShowtime.hall || h.id === movie.hallId
-  ) || halls?.[0];
+  const activeHall =
+    halls?.find((h) => h.name === selectedShowtime.hall || h.id === movie.hallId) ||
+    halls?.[0];
 
   const rowCount = activeHall?.rows || 6;
   const seatsPerRow = activeHall?.seatsPerRow || 10;
   const rows = Array.from({ length: rowCount }, (_, i) => i + 1);
+
+  // Combine demo occupied seats + real persisted bookings
+  const baseOccupied = [
+    '2-3', '2-4', '3-5', '3-6', '3-7', '4-2', '4-3', '4-8', '4-9', '6-1', '6-2', '6-9', '6-10',
+  ];
+  const occupiedSeats = new Set([...baseOccupied, ...bookedSeatsForSession]);
+
+  // Initial selection avoiding occupied or out-of-bounds seats
+  const [selectedSeats, setSelectedSeats] = useState<string[]>(() => {
+    const preferred = ['5-4', '5-5', '3-3', '3-4', '1-1', '1-2'];
+    const valid: string[] = [];
+    for (const seat of preferred) {
+      const [r, s] = seat.split('-').map(Number);
+      if (r <= rowCount && s <= seatsPerRow && !occupiedSeats.has(seat)) {
+        valid.push(seat);
+        if (valid.length === 2) break;
+      }
+    }
+    return valid;
+  });
 
   const toggleSeat = (row: number, seat: number) => {
     const seatId = `${row}-${seat}`;

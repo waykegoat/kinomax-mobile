@@ -25,18 +25,24 @@ export const MoviePoster: React.FC<MoviePosterProps> = ({
   title,
   className = '',
 }) => {
-  const [hasError, setHasError] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
 
-  // Priority: 1. explicit posterImage prop, 2. preset from movieId
-  const posterSrc = posterImage || (movieId ? POSTER_PRESETS[movieId] : undefined);
+  const presetSrc = movieId ? POSTER_PRESETS[movieId] : undefined;
+  let posterSrc: string | undefined = undefined;
+  if (posterImage && failedSrc !== posterImage) {
+    posterSrc = posterImage;
+  } else if (presetSrc && failedSrc !== presetSrc) {
+    posterSrc = presetSrc;
+  }
 
-  if (posterSrc && !hasError) {
+  if (posterSrc) {
+    const activeSrc = posterSrc;
     return (
       <div className={`overflow-hidden rounded-xl bg-neutral-900 relative ${className}`}>
         <img
-          src={posterSrc}
+          src={activeSrc}
           alt={title || 'Постер'}
-          onError={() => setHasError(true)}
+          onError={() => setFailedSrc(activeSrc)}
           className="w-full h-full object-cover select-none block"
           loading="eager"
         />

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 import { MOVIES, SEARCH_HISTORY_ITEMS } from '../data/mockData';
 import type { Movie } from '../data/mockData';
 import { MoviePoster } from './MoviePoster';
 import { FilterModal } from './FilterModal';
 import type { FilterState } from './FilterModal';
+import { getStorageItem, setStorageItem } from '../utils/validation';
 
 interface SearchScreenProps {
   movies?: Movie[];
@@ -16,17 +17,37 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
   onSelectMovie,
 }) => {
   const [query, setQuery] = useState('');
-  const [history, setHistory] = useState<string[]>(SEARCH_HISTORY_ITEMS);
+  const [history, setHistory] = useState<string[]>(() =>
+    getStorageItem('kinomax_search_history', SEARCH_HISTORY_ITEMS)
+  );
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterState>({
-    genre: 'Все',
-    date: 'Сегодня',
-    price: 'Любая',
-  });
+  const [filters, setFilters] = useState<FilterState>(() =>
+    getStorageItem('kinomax_search_filters', {
+      genre: 'Все',
+      date: 'Сегодня',
+      price: 'Любая',
+    })
+  );
+
+  useEffect(() => {
+    setStorageItem('kinomax_search_history', history);
+  }, [history]);
+
+  useEffect(() => {
+    setStorageItem('kinomax_search_filters', filters);
+  }, [filters]);
 
   const removeHistoryItem = (itemToRemove: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setHistory(history.filter((item) => item !== itemToRemove));
+  };
+
+  const handleOpenMovie = (movie: Movie) => {
+    const cleanQ = query.trim();
+    if (cleanQ.length >= 2 && !history.includes(cleanQ)) {
+      setHistory([cleanQ, ...history].slice(0, 8));
+    }
+    onSelectMovie(movie);
   };
 
   const filteredMovies = movies.filter((m) => {
@@ -126,7 +147,7 @@ export const SearchScreen: React.FC<SearchScreenProps> = ({
               {filteredMovies.map((movie) => (
                 <div
                   key={movie.id}
-                  onClick={() => onSelectMovie(movie)}
+                  onClick={() => handleOpenMovie(movie)}
                   className="flex gap-3.5 p-3 bg-[#1A1A1E] border border-neutral-800/80 rounded-2xl hover:border-neutral-700 transition-all cursor-pointer shadow-md group"
                 >
                   <div className="w-16 h-22 rounded-xl overflow-hidden shrink-0 shadow-md">

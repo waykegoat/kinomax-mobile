@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Heart, Share2 } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, CheckCircle2 } from 'lucide-react';
 import type { Movie } from '../data/mockData';
 import { MoviePoster } from './MoviePoster';
 
 interface MovieDetailScreenProps {
   movie: Movie;
+  isLiked?: boolean;
+  onToggleFavorite?: (movieId: string) => void;
   onBack: () => void;
   onSelectSeats: (date: string, showtime: Movie['showtimes'][0]) => void;
 }
 
 export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
   movie,
+  isLiked = false,
+  onToggleFavorite,
   onBack,
   onSelectSeats,
 }) => {
   const [selectedDate, setSelectedDate] = useState(movie.dates[0] || '22 окт');
-  const [selectedShowtimeIndex, setSelectedShowtimeIndex] = useState(1); // Default 12:40 matching Figma
-  const [isLiked, setIsLiked] = useState(false);
+  const [selectedShowtimeIndex, setSelectedShowtimeIndex] = useState(
+    movie.showtimes.length > 1 ? 1 : 0
+  );
+  const [copiedToast, setCopiedToast] = useState(false);
 
   const selectedShowtime = movie.showtimes[selectedShowtimeIndex] || movie.showtimes[0];
 
@@ -26,7 +32,7 @@ export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
       <div className="p-4 flex items-center justify-between shrink-0 z-20 border-b border-neutral-800/60">
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] transition-colors"
+          className="flex items-center gap-1.5 text-xs font-semibold text-[#E52E84] hover:text-[#F03A92] transition-colors cursor-pointer"
         >
           <ArrowLeft size={16} />
           <span>Назад</span>
@@ -34,27 +40,35 @@ export const MovieDetailScreen: React.FC<MovieDetailScreenProps> = ({
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsLiked(!isLiked)}
-            className={`w-8 h-8 rounded-full bg-[#222226] flex items-center justify-center transition-colors ${
+            onClick={() => onToggleFavorite?.(movie.id)}
+            className={`w-8 h-8 rounded-full bg-[#222226] flex items-center justify-center transition-colors cursor-pointer ${
               isLiked ? 'text-[#E52E84]' : 'text-neutral-400 hover:text-white'
             }`}
+            title={isLiked ? 'Убрать из избранного' : 'В избранное'}
           >
             <Heart size={16} fill={isLiked ? '#E52E84' : 'none'} />
           </button>
           <button
             onClick={() => {
-              if (navigator.share) {
-                navigator.share({ title: movie.title, url: window.location.href }).catch(() => {});
-              } else {
-                alert('Ссылка на фильм скопирована');
+              if (navigator.clipboard) {
+                navigator.clipboard.writeText(window.location.href).catch(() => {});
               }
+              setCopiedToast(true);
+              setTimeout(() => setCopiedToast(false), 2000);
             }}
-            className="w-8 h-8 rounded-full bg-[#222226] text-neutral-400 hover:text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-[#222226] text-neutral-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <Share2 size={16} />
           </button>
         </div>
       </div>
+
+      {copiedToast && (
+        <div className="mx-4 mt-2 p-2.5 bg-emerald-950/90 border border-emerald-500/40 rounded-xl text-xs text-emerald-200 flex items-center gap-2 animate-fade-in z-20">
+          <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+          <span>Ссылка на фильм скопирована</span>
+        </div>
+      )}
 
       {/* Scrollable details content */}
       <div className="flex-1 overflow-y-auto pb-6">

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, Check, Sliders } from 'lucide-react';
+import { Plus, Trash2, Check, Sliders, AlertTriangle } from 'lucide-react';
 import type { Hall } from '../../data/mockData';
 
 interface AdminHallsProps {
@@ -9,20 +9,27 @@ interface AdminHallsProps {
 
 export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) => {
   const [selectedHallId, setSelectedHallId] = useState<string>(halls[0]?.id || '');
-  const [editingHall, setEditingHall] = useState<Hall>(() => halls[0] || {
-    id: 'hall-1',
-    name: 'Зал 1',
-    type: 'standard',
-    rows: 6,
-    seatsPerRow: 10,
-    priceModifier: 0,
-    description: 'Стандартный комфортный зал с лазерным RGB проектором',
-  });
+  const [editingHall, setEditingHall] = useState<Hall>(
+    () =>
+      halls[0] || {
+        id: 'hall-1',
+        name: 'Зал 1',
+        type: 'standard',
+        rows: 6,
+        seatsPerRow: 10,
+        priceModifier: 0,
+        description: 'Стандартный комфортный зал с лазерным RGB проектором',
+      }
+  );
   const [saveToast, setSaveToast] = useState(false);
+  const [errorToast, setErrorToast] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
 
   const handleSelectHall = (hall: Hall) => {
     setSelectedHallId(hall.id);
     setEditingHall({ ...hall });
+    setFieldErrors({});
+    setErrorToast(null);
   };
 
   const handleApplyPreset = (type: 'standard' | 'vip' | 'imax') => {
@@ -57,13 +64,37 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
   };
 
   const handleSaveHall = () => {
-    const exists = halls.some((h) => h.id === editingHall.id);
+    const nextErrs: Record<string, string | null> = {};
+    const trimmedName = editingHall.name.trim();
+    if (!trimmedName) nextErrs.name = 'Введите название зала';
+    else if (trimmedName.length < 2) nextErrs.name = 'Минимум 2 символа';
+    else if (
+      halls.some((h) => h.id !== editingHall.id && h.name.trim().toLowerCase() === trimmedName.toLowerCase())
+    ) {
+      nextErrs.name = 'Зал с таким названием уже существует';
+    }
+
+    if (editingHall.priceModifier < 0 || editingHall.priceModifier > 5000 || isNaN(editingHall.priceModifier)) {
+      nextErrs.priceModifier = 'Наценка должна быть от 0 до 5 000 ₽';
+    }
+
+    if (Object.values(nextErrs).some(Boolean)) {
+      setFieldErrors(nextErrs);
+      setErrorToast('Исправьте ошибки в параметрах зала');
+      return;
+    }
+
+    setFieldErrors({});
+    setErrorToast(null);
+    const sanitizedHall = { ...editingHall, name: trimmedName };
+    const exists = halls.some((h) => h.id === sanitizedHall.id);
     let updated: Hall[];
     if (exists) {
-      updated = halls.map((h) => (h.id === editingHall.id ? editingHall : h));
+      updated = halls.map((h) => (h.id === sanitizedHall.id ? sanitizedHall : h));
     } else {
-      updated = [...halls, editingHall];
+      updated = [...halls, sanitizedHall];
     }
+    setEditingHall(sanitizedHall);
     onUpdateHalls(updated);
     setSaveToast(true);
     setTimeout(() => setSaveToast(false), 2500);
@@ -80,13 +111,18 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
       priceModifier: 0,
       description: 'Новый современный кинозал',
     };
+    const nextHalls = [...halls, newHall];
+    onUpdateHalls(nextHalls);
     setSelectedHallId(newHall.id);
     setEditingHall(newHall);
+    setFieldErrors({});
+    setErrorToast(null);
   };
 
   const handleDeleteHall = (id: string) => {
     if (halls.length <= 1) {
-      alert('В кинотеатре должен оставаться хотя бы один кинозал');
+      setErrorToast('В кинотеатре должен оставаться хотя бы один кинозал');
+      setTimeout(() => setErrorToast(null), 3500);
       return;
     }
     const filtered = halls.filter((h) => h.id !== id);
@@ -149,11 +185,18 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
         })}
       </div>
 
-      {/* Success alert */}
+      {/* Success & Error alerts */}
       {saveToast && (
         <div className="p-3 bg-emerald-950/80 border border-emerald-500/60 text-emerald-200 rounded-2xl text-xs flex items-center gap-2 animate-fade-in shadow-lg">
-          <Check size={16} className="text-emerald-400" />
+          <Check size={16} className="text-emerald-400 shrink-0" />
           <span>Параметры кинозала успешно сохранены!</span>
+        </div>
+      )}
+
+      {errorToast && (
+        <div className="p-3 bg-red-950/80 border border-red-500/60 text-red-200 rounded-2xl text-xs flex items-center gap-2 animate-fade-in shadow-lg">
+          <AlertTriangle size={16} className="text-red-400 shrink-0" />
+          <span>{errorToast}</span>
         </div>
       )}
 
@@ -163,28 +206,36 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
           <div className="text-xs font-black uppercase tracking-wider text-neutral-400">
             Конфигурация зала
           </div>
-          {halls.length > 1 && (
-            <button
-              onClick={() => handleDeleteHall(editingHall.id)}
-              className="text-neutral-500 hover:text-red-400 text-xs flex items-center gap-1 transition-colors"
-            >
-              <Trash2 size={13} />
-              <span>Удалить зал</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => handleDeleteHall(editingHall.id)}
+            className="text-neutral-500 hover:text-red-400 text-xs flex items-center gap-1 transition-colors cursor-pointer"
+          >
+            <Trash2 size={13} />
+            <span>Удалить зал</span>
+          </button>
         </div>
 
         {/* Hall Name */}
         <div>
           <label className="block text-[11px] font-bold text-neutral-400 mb-1">
-            Название зала
+            Название зала *
           </label>
           <input
             type="text"
             value={editingHall.name}
-            onChange={(e) => setEditingHall({ ...editingHall, name: e.target.value })}
-            className="w-full bg-[#121214] border border-neutral-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E52E84]"
+            onChange={(e) => {
+              setEditingHall({ ...editingHall, name: e.target.value });
+              if (fieldErrors.name) setFieldErrors({ ...fieldErrors, name: null });
+              if (errorToast) setErrorToast(null);
+            }}
+            className={`w-full bg-[#121214] border rounded-xl px-3 py-2 text-xs text-white focus:outline-none ${
+              fieldErrors.name ? 'border-red-500' : 'border-neutral-700/80 focus:border-[#E52E84]'
+            }`}
           />
+          {fieldErrors.name && (
+            <p className="text-[10px] text-red-400 mt-1">{fieldErrors.name}</p>
+          )}
         </div>
 
         {/* 2-3 Hall Variants / Presets */}
@@ -323,6 +374,30 @@ export const AdminHalls: React.FC<AdminHallsProps> = ({ halls, onUpdateHalls }) 
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Price Modifier Input */}
+        <div>
+          <label className="block text-[11px] font-bold text-neutral-400 mb-1">
+            Наценка зала к базовой цене (₽)
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={5000}
+            value={editingHall.priceModifier}
+            onChange={(e) => {
+              const val = e.target.value === '' ? 0 : parseInt(e.target.value, 10);
+              setEditingHall({ ...editingHall, priceModifier: isNaN(val) ? 0 : val });
+              if (fieldErrors.priceModifier) setFieldErrors({ ...fieldErrors, priceModifier: null });
+            }}
+            className={`w-full bg-[#121214] border rounded-xl px-3 py-2 text-xs text-white focus:outline-none ${
+              fieldErrors.priceModifier ? 'border-red-500' : 'border-neutral-700/80 focus:border-[#E52E84]'
+            }`}
+          />
+          {fieldErrors.priceModifier && (
+            <p className="text-[10px] text-red-400 mt-1">{fieldErrors.priceModifier}</p>
+          )}
         </div>
 
         {/* Capacity summary & Surcharge */}
