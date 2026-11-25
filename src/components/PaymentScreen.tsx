@@ -81,27 +81,42 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
   const [promoFeedback, setPromoFeedback] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   // Auth-only Bonus spending state
-  const userBonuses = user ? (user.bonuses ?? 0) : 0;
+  const userBonuses = user ? Math.max(0, user.bonuses ?? 0) : 0;
   const priceAfterPromo = Math.max(1, Math.round(totalPrice * (1 - discountPercent / 100)));
-  const maxSpendableBonuses = user ? Math.min(userBonuses, Math.floor(priceAfterPromo * 0.5)) : 0;
+  const maxSpendableBonuses = user
+    ? Math.min(userBonuses, Math.floor(priceAfterPromo * 0.5), Math.max(0, priceAfterPromo - 1))
+    : 0;
   const [useBonuses, setUseBonuses] = useState(false);
   const [bonusesToSpend, setBonusesToSpend] = useState<number>(maxSpendableBonuses);
 
-  // If user logs in or promo changes, sync bounds safely
+  // If user logs out, clear bonuses; if promo/user changes bounds when toggled off, sync max
   useEffect(() => {
     if (!user) {
       setUseBonuses(false);
       setBonusesToSpend(0);
-    } else if (bonusesToSpend > maxSpendableBonuses) {
+    } else if (!useBonuses) {
       setBonusesToSpend(maxSpendableBonuses);
     }
-  }, [user, maxSpendableBonuses]);
+  }, [user, maxSpendableBonuses, useBonuses]);
 
   // Errors
   const [errors, setErrors] = useState<Record<string, string | null>>({});
 
+  const liveBonusError =
+    user && useBonuses
+      ? !Number.isFinite(bonusesToSpend) || bonusesToSpend < 0
+        ? 'Введите корректное количество бонусов'
+        : bonusesToSpend > userBonuses
+        ? `На балансе только ${userBonuses} бонусов`
+        : bonusesToSpend > maxSpendableBonuses
+        ? `Можно списать не более 50% заказа (макс. ${maxSpendableBonuses} Б)`
+        : null
+      : null;
+
   const effectiveBonusesUsed =
-    user && useBonuses ? Math.min(maxSpendableBonuses, Math.max(0, isNaN(bonusesToSpend) ? 0 : bonusesToSpend)) : 0;
+    user && useBonuses && !liveBonusError
+      ? Math.min(maxSpendableBonuses, Math.max(0, Math.floor(isNaN(bonusesToSpend) ? 0 : bonusesToSpend)))
+      : 0;
   const finalPrice = Math.max(1, priceAfterPromo - effectiveBonusesUsed);
   const bonusesEarned = user ? Math.round(finalPrice * 0.05) : 0;
 
@@ -150,12 +165,8 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
       if (cvvErr) nextErrors.cardCvv = cvvErr;
     }
 
-    if (user && useBonuses) {
-      if (isNaN(bonusesToSpend) || bonusesToSpend < 0) {
-        nextErrors.bonuses = 'Укажите положительное число бонусов';
-      } else if (bonusesToSpend > maxSpendableBonuses) {
-        nextErrors.bonuses = `Максимум можно списать ${maxSpendableBonuses} бонусов (до 50% заказа)`;
-      }
+    if (user && useBonuses && liveBonusError) {
+      nextErrors.bonuses = liveBonusError;
     }
 
     if (Object.values(nextErrors).some(Boolean)) {
@@ -657,7 +668,7 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
                           if (errors.bonuses) setErrors({ ...errors, bonuses: null });
                         }}
                         className={`flex-1 bg-[#121214] border rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none ${
-                          errors.bonuses ? 'border-red-500' : 'border-neutral-700 focus:border-[#E52E84]'
+                          liveBonusError || errors.bonuses ? 'border-red-500' : 'border-neutral-700 focus:border-[#E52E84]'
                         }`}
                       />
                       <button
@@ -671,7 +682,9 @@ export const PaymentScreen: React.FC<PaymentScreenProps> = ({
                         Макс. ({maxSpendableBonuses})
                       </button>
                     </div>
-                    {errors.bonuses && <p className="text-[10px] text-red-400">{errors.bonuses}</p>}
+                    {(liveBonusError || errors.bonuses) && (
+                      <p className="text-[10px] text-red-400">{liveBonusError || errors.bonuses}</p>
+                    )}
                   </div>
                 )}
 

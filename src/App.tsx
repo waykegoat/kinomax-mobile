@@ -52,10 +52,25 @@ export const App: React.FC = () => {
     if (saved && Array.isArray(saved) && saved.length > 0) {
       return saved.map((m) => {
         const preset = MOVIES.find((p) => p.id === m.id);
+        let patched = m;
         if (preset && (!m.posterImage || (!m.posterImage.startsWith('data:') && !m.posterImage.startsWith('http')))) {
-          return { ...m, posterImage: preset.posterImage };
+          patched = { ...patched, posterImage: preset.posterImage };
         }
-        return m;
+        // Auto-heal legacy cached Dune-2 16:00/19:00 overlap from older versions
+        if (
+          m.id === 'dune-2' &&
+          m.durationMinutes === 166 &&
+          m.showtimes.some((s) => s.time === '16:00' && s.hall === 'Зал 3 IMAX') &&
+          m.showtimes.some((s) => s.time === '19:00' && s.hall === 'Зал 3 IMAX')
+        ) {
+          patched = {
+            ...patched,
+            showtimes: patched.showtimes.map((s) =>
+              s.time === '19:00' && s.hall === 'Зал 3 IMAX' ? { ...s, time: '19:15' } : s
+            ),
+          };
+        }
+        return patched;
       });
     }
     return MOVIES;
